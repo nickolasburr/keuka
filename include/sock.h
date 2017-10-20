@@ -7,14 +7,14 @@
 #ifndef KEUKA_SOCK_H
 #define KEUKA_SOCK_H
 
-#include "common.h"
-#include "ssl.h"
 #include <sys/socket.h>
 #include <resolv.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include "common.h"
+#include "ssl.h"
 
-int mksock(char[], BIO *);
+int mksock(char *, BIO *);
 
 #endif /* KEUKA_SOCK_H */
