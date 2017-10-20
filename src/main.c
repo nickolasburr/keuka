@@ -6,7 +6,7 @@
 
 #include "main.h"
 
-int main () {
+int main (int argc, char **argv) {
 	int server = 0;
 	char *dest_url = "https://www.example.com";
 	const SSL_METHOD *method;
