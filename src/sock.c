@@ -7,7 +7,7 @@
 #include "sock.h"
 
 /**
- * Create a Unix socket and connect via TCP to server.
+ * Create TCP socket.
  */
 int mksock (char *url_str, BIO *out) {
 	int sockfd, port;

@@ -7,12 +7,14 @@
 #include "main.h"
 
 int main (int argc, char **argv) {
+	size_t index;
 	int server = 0;
 	char *dest_url = "https://www.example.com";
 	const SSL_METHOD *method;
-	BIO *certbio, *outbio;
-	X509 *cert = NULL;
-	X509_NAME *certname = NULL;
+	STACK_OF(X509) *chain;
+	BIO *outbio;
+	X509 *crt;
+	X509_NAME *crtname;
 	SSL_CTX *ctx;
 	SSL *ssl;
 
@@ -25,18 +27,14 @@ int main (int argc, char **argv) {
 	SSL_load_error_strings();
 
 	/**
-	 * Initialize BIO streams.
-	 */
-	certbio = BIO_new(BIO_s_file());
-	outbio  = BIO_new_fp(stdout, BIO_NOCLOSE);
-
-	/**
 	 * Initialize OpenSSL library.
 	 */
-	if (SSL_library_init() < 0) {
-		BIO_printf(outbio, "Could not initialize the OpenSSL library !\n");
-	}
+	SSL_library_init();
 
+	/**
+	 * Initialize BIO stream, set handshake method.
+	 */
+	outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
 	method = SSLv23_client_method();
 
 	/**
@@ -52,7 +50,7 @@ int main (int argc, char **argv) {
 	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
 
 	/**
-	 * Establish new connection state.
+	 * Establish connection state.
 	 */
 	ssl = SSL_new(ctx);
 
@@ -62,7 +60,7 @@ int main (int argc, char **argv) {
 	server = mksock(dest_url, outbio);
 
 	if (server != 0) {
-		BIO_printf(outbio, "Successfully made the TCP connection to: %s.\n", dest_url);
+		BIO_printf(outbio, "Successfully made the TCP connection to: %s.\n\n", dest_url);
 	}
 
 	/**
@@ -71,46 +69,64 @@ int main (int argc, char **argv) {
 	SSL_set_fd(ssl, server);
 
 	/**
-	 * Bridge the connection. Throw an exception if an error was encountered.
+	 * Bridge the connection.
+	 *
+	 * @todo: Throw an exception if an error was encountered.
 	 */
 	if (SSL_connect(ssl) != 1) {
 		BIO_printf(outbio, "Error: Could not build a SSL session to: %s.\n", dest_url);
-	} else {
-		BIO_printf(outbio, "Successfully enabled SSL/TLS session to: %s.\n", dest_url);
 	}
 
 	/**
 	 * Load remote certificate into X509 structure.
 	 */
-	cert = SSL_get_peer_certificate(ssl);
+	crt = SSL_get_peer_certificate(ssl);
 
-	if (is_null(cert)) {
-		BIO_printf(outbio, "Error: Could not get a certificate from: %s.\n", dest_url);
-	} else {
-		BIO_printf(outbio, "Retrieved the server's certificate from: %s.\n", dest_url);
+	if (is_null(crt)) {
+		BIO_printf(outbio, "Error: Could not get certificate from: %s.\n", dest_url);
 	}
 
 	/**
-	 * Get certificate information.
+	 * Get certificate subject.
 	 */
-	certname = X509_NAME_new();
-	certname = X509_get_subject_name(cert);
+	crtname = X509_get_subject_name(crt);
 
 	/**
-	 * Output certificate subject below.
+	 * Output certificate subject.
 	 */
-	BIO_printf(outbio, "Displaying the certificate subject data:\n");
-	X509_NAME_print_ex(outbio, certname, 0, 0);
-	BIO_printf(outbio, "\n");
+	BIO_printf(outbio, "Displaying certificate subject data:\n\n");
+	X509_NAME_print_ex(outbio, crtname, 2, XN_FLAG_SEP_MULTILINE);
+	BIO_printf(outbio, "\n\n");
+
+	/**
+	 * Get certificate chain.
+	 */
+	chain = SSL_get_peer_cert_chain(ssl);
+
+	if (is_null(chain)) {
+		BIO_printf(outbio, "Error: Could not get certificate chain from: %s.\n", dest_url);
+	}
+
+	BIO_printf(outbio, "Displaying certificate chain data:\n\n");
+
+	for (index = 0; index < sk_X509_num(chain); index += 1) {
+		X509 *ccrt = sk_X509_value(chain, index);
+		X509_NAME *ccrtname = X509_get_subject_name(ccrt);
+
+		/**
+		 * Output certificate chain.
+		 */
+		X509_NAME_print_ex(outbio, ccrtname, 2, XN_FLAG_SEP_MULTILINE);
+		BIO_printf(outbio, "\n\n");
+	}
 
 	/**
 	 * Run cleanup tasks.
 	 */
 	SSL_free(ssl);
 	close(server);
-	X509_free(cert);
+	X509_free(crt);
 	SSL_CTX_free(ctx);
-	BIO_printf(outbio, "Finished SSL/TLS connection with server: %s.\n", dest_url);
 
 	return EXIT_SUCCESS;
 }
