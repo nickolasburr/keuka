@@ -8,8 +8,9 @@
 
 int main (int argc, char **argv) {
 	size_t index;
-	int server = 0;
+	int opt_index, arg_index, last_index, server = 0;
 	char *dest_url = "https://www.example.com";
+	char host[256];
 	const SSL_METHOD *method;
 	STACK_OF(X509) *chain;
 	BIO *outbio;
@@ -17,6 +18,30 @@ int main (int argc, char **argv) {
 	X509_NAME *crtname;
 	SSL_CTX *ctx;
 	SSL *ssl;
+
+	last_index = (argc - 1);
+
+	/**
+	 * Check if --domain option was given.
+	 * If not, throw an exception and exit.
+	 */
+	if (in_array("--domain", argv, argc) ||
+	    in_array("-D", argv, argc)) {
+
+		opt_index = (index_of("--domain", argv, argc) != NOT_FOUND)
+		          ? index_of("--domain", argv, argc)
+		          : index_of("-D", argv, argc);
+
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "--domain: Missing argument\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		copy(host, argv[arg_index]);
+	}
+
+	fprintf(stdout, "Hostname: %s\n", host);
 
 	/**
 	 * Run OpenSSL initialization tasks.
