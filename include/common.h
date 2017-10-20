@@ -24,6 +24,7 @@
 #endif
 
 #define _GNU_SOURCE
+#define NOT_FOUND -1
 #define NULL_BYTE 1
 #define NULL_DEVICE "/dev/null"
 
