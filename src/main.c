@@ -7,41 +7,80 @@
 #include "main.h"
 
 int main (int argc, char **argv) {
-	size_t index;
-	int opt_index, arg_index, last_index, server = 0;
-	char *dest_url = "https://www.example.com";
-	char host[256];
+	size_t crt_index;
+	int opt_index, arg_index, last_index, server;
+	char hostname[MAX_HOSTNAME_LENGTH],
+	     port[MAX_PORT_LENGTH],
+	     scheme[MAX_SCHEME_LENGTH],
+	     url[MAX_URL_LENGTH];
 	const SSL_METHOD *method;
 	STACK_OF(X509) *chain;
 	BIO *outbio;
-	X509 *crt;
-	X509_NAME *crtname;
+	X509 *crt, *tcrt;
+	X509_NAME *crtname, *tcrtname;
 	SSL_CTX *ctx;
 	SSL *ssl;
 
 	last_index = (argc - 1);
+	server = 0;
 
 	/**
-	 * Check if --domain option was given.
+	 * Check if --hostname option was given.
 	 * If not, throw an exception and exit.
+	 *
+	 * @todo: This should be --hostname instead.
 	 */
-	if (in_array("--domain", argv, argc) ||
-	    in_array("-D", argv, argc)) {
+	if (in_array("--hostname", argv, argc) ||
+	    in_array("-H", argv, argc)) {
 
-		opt_index = (index_of("--domain", argv, argc) != NOT_FOUND)
-		          ? index_of("--domain", argv, argc)
-		          : index_of("-D", argv, argc);
+		opt_index = (index_of("--hostname", argv, argc) != NOT_FOUND)
+		          ? index_of("--hostname", argv, argc)
+		          : index_of("-H", argv, argc);
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "--domain: Missing argument\n");
+			fprintf(stderr, "--hostname: Missing argument\n");
 
 			exit(EXIT_FAILURE);
 		}
 
-		copy(host, argv[arg_index]);
+		copy(hostname, argv[arg_index]);
 	}
 
-	fprintf(stdout, "Hostname: %s\n", host);
+	fprintf(stdout, "Hostname: %s\n", hostname);
+
+	/**
+	 * Check if --scheme option was given.
+	 * If not, set default scheme to https.
+	 *
+	 * @todo: Whitelist schemes and throw an
+	 *        exception on unsupported schemes.
+	 */
+	if (in_array("--scheme", argv, argc) ||
+	    in_array("-S", argv, argc)) {
+
+		opt_index = (index_of("--scheme", argv, argc) != NOT_FOUND)
+		          ? index_of("--scheme", argv, argc)
+		          : index_of("-S", argv, argc);
+
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "--scheme: Missing argument\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		copy(scheme, argv[arg_index]);
+	} else {
+		copy(scheme, "https");
+	}
+
+	fprintf(stdout, "Scheme: %s\n", scheme);
+
+	/**
+	 * Assemble URL for request.
+	 */
+	copy(url, scheme);
+	concat(url, "://");
+	concat(url, hostname);
 
 	/**
 	 * Run OpenSSL initialization tasks.
@@ -82,10 +121,10 @@ int main (int argc, char **argv) {
 	/**
 	 * Make TCP socket connection.
 	 */
-	server = mksock(dest_url, outbio);
+	server = mksock(url, outbio);
 
 	if (server != 0) {
-		BIO_printf(outbio, "Successfully made the TCP connection to: %s.\n\n", dest_url);
+		BIO_printf(outbio, "Successfully made TCP connection to: %s.\n\n", url);
 	}
 
 	/**
@@ -99,7 +138,7 @@ int main (int argc, char **argv) {
 	 * @todo: Throw an exception if an error was encountered.
 	 */
 	if (SSL_connect(ssl) != 1) {
-		BIO_printf(outbio, "Error: Could not build a SSL session to: %s.\n", dest_url);
+		BIO_printf(outbio, "Error: Could not build a SSL session to: %s.\n", url);
 	}
 
 	/**
@@ -108,7 +147,7 @@ int main (int argc, char **argv) {
 	crt = SSL_get_peer_certificate(ssl);
 
 	if (is_null(crt)) {
-		BIO_printf(outbio, "Error: Could not get certificate from: %s.\n", dest_url);
+		BIO_printf(outbio, "Error: Could not get certificate from: %s.\n", url);
 	}
 
 	/**
@@ -129,19 +168,19 @@ int main (int argc, char **argv) {
 	chain = SSL_get_peer_cert_chain(ssl);
 
 	if (is_null(chain)) {
-		BIO_printf(outbio, "Error: Could not get certificate chain from: %s.\n", dest_url);
+		BIO_printf(outbio, "Error: Could not get certificate chain from: %s.\n", url);
 	}
 
 	BIO_printf(outbio, "Displaying certificate chain data:\n\n");
 
-	for (index = 0; index < sk_X509_num(chain); index += 1) {
-		X509 *ccrt = sk_X509_value(chain, index);
-		X509_NAME *ccrtname = X509_get_subject_name(ccrt);
+	for (crt_index = 0; crt_index < sk_X509_num(chain); crt_index += 1) {
+		tcrt = sk_X509_value(chain, crt_index);
+		tcrtname = X509_get_subject_name(tcrt);
 
 		/**
 		 * Output certificate chain.
 		 */
-		X509_NAME_print_ex(outbio, ccrtname, 2, XN_FLAG_SEP_MULTILINE);
+		X509_NAME_print_ex(outbio, tcrtname, 2, XN_FLAG_SEP_MULTILINE);
 		BIO_printf(outbio, "\n\n");
 	}
 
