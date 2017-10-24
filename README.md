@@ -1,6 +1,6 @@
 # Keuka
 
-Keuka is a key exchange utility for analyzing and modifying certificate and key information during SSL/TLS handshakes.
+Keuka is a utility for analyzing and modifying certificate and key information during SSL/TLS handshakes.
 
 ## Installation
 
