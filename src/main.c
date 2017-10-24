@@ -13,6 +13,7 @@ int main (int argc, char **argv) {
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
 	     url[MAX_URL_LENGTH];
+	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	STACK_OF(X509) *chain;
 	BIO *outbio;
@@ -27,8 +28,6 @@ int main (int argc, char **argv) {
 	/**
 	 * Check if --hostname option was given.
 	 * If not, throw an exception and exit.
-	 *
-	 * @todo: This should be --hostname instead.
 	 */
 	if (in_array("--hostname", argv, argc) ||
 	    in_array("-H", argv, argc)) {
@@ -141,13 +140,18 @@ int main (int argc, char **argv) {
 		BIO_printf(outbio, "Error: Could not build a SSL session to: %s.\n", url);
 	}
 
+	cipher = SSL_get_current_cipher(ssl);
+
+	BIO_printf(outbio, "%s, Cipher is %s\n", SSL_CIPHER_get_version(cipher), SSL_CIPHER_get_name(cipher));
+	BIO_printf(outbio, "\n");
+
 	/**
 	 * Load remote certificate into X509 structure.
 	 */
 	crt = SSL_get_peer_certificate(ssl);
 
 	if (is_null(crt)) {
-		BIO_printf(outbio, "Error: Could not get certificate from: %s.\n", url);
+		BIO_printf(outbio, "Error: Could not get certificate from %s.\n", url);
 	}
 
 	/**
@@ -158,7 +162,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Output certificate subject.
 	 */
-	BIO_printf(outbio, "Displaying certificate subject data:\n\n");
+	BIO_printf(outbio, "Displaying certificate subject:\n\n");
 	X509_NAME_print_ex(outbio, crtname, 2, XN_FLAG_SEP_MULTILINE);
 	BIO_printf(outbio, "\n\n");
 
@@ -168,10 +172,10 @@ int main (int argc, char **argv) {
 	chain = SSL_get_peer_cert_chain(ssl);
 
 	if (is_null(chain)) {
-		BIO_printf(outbio, "Error: Could not get certificate chain from: %s.\n", url);
+		BIO_printf(outbio, "Error: Could not get certificate chain from %s.\n", url);
 	}
 
-	BIO_printf(outbio, "Displaying certificate chain data:\n\n");
+	BIO_printf(outbio, "Displaying certificate chain:\n\n");
 
 	for (crt_index = 0; crt_index < sk_X509_num(chain); crt_index += 1) {
 		tcrt = sk_X509_value(chain, crt_index);
@@ -182,6 +186,8 @@ int main (int argc, char **argv) {
 		 */
 		X509_NAME_print_ex(outbio, tcrtname, 2, XN_FLAG_SEP_MULTILINE);
 		BIO_printf(outbio, "\n\n");
+		PEM_write_bio_X509(outbio, tcrt);
+		BIO_printf(outbio, "\n");
 	}
 
 	/**
