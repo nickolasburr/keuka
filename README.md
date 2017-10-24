@@ -1,10 +1,10 @@
-# Keuka: Key Exchange Utility for Key Analysis
+# Keuka
 
-Keuka is a key exchange utility aimed at transparent public/private key analysis during SSL/TLS handshakes.
+Keuka is a key exchange utility for analyzing and modifying certificate and key information during SSL/TLS handshakes.
 
 ## Installation
 
-There are currently two installation methods: Homebrew or manually.
+There are currently two installation methods: Homebrew and manual.
 
 ### Homebrew
 
@@ -24,7 +24,9 @@ make install
 
 ## Options
 
-TBD
++ `--hostname`, `-H`: Hostname of the remote server.
++ `--port`, `-P`: Alternate port number.
++ `--scheme`, `-S`: Alternate transport protocol to use for the exchange (e.g. sftp).
 
 ## Examples
 
