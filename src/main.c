@@ -13,6 +13,7 @@ int main (int argc, char **argv) {
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
 	     url[MAX_URL_LENGTH];
+	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	STACK_OF(X509) *chain;
 	BIO *outbio;
@@ -27,8 +28,6 @@ int main (int argc, char **argv) {
 	/**
 	 * Check if --hostname option was given.
 	 * If not, throw an exception and exit.
-	 *
-	 * @todo: This should be --hostname instead.
 	 */
 	if (in_array("--hostname", argv, argc) ||
 	    in_array("-H", argv, argc)) {
@@ -140,6 +139,15 @@ int main (int argc, char **argv) {
 	if (SSL_connect(ssl) != 1) {
 		BIO_printf(outbio, "Error: Could not build a SSL session to: %s.\n", url);
 	}
+
+	cipher = SSL_get_current_cipher(ssl);
+
+	BIO_printf(outbio, "%s, Cipher is %s\n", SSL_CIPHER_get_version(cipher), SSL_CIPHER_get_name(cipher));
+	BIO_printf(outbio, "\n");
+
+	print_ca_names(outbio, ssl);
+	ssl_print_sigalgs(outbio, ssl);
+	ssl_print_tmp_key(outbio, ssl);
 
 	/**
 	 * Load remote certificate into X509 structure.
