@@ -8,6 +8,7 @@
 #define KEUKA_MAIN_H
 
 #include "common.h"
+#include "argv.h"
 #include "sock.h"
 #include "ssl.h"
 
