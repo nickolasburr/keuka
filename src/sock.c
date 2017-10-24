@@ -9,7 +9,7 @@
 /**
  * Create TCP socket.
  */
-int mksock (char *url_str, BIO *out) {
+int mksock (char *url, BIO *out) {
 	int sockfd, port;
 	char hostname[256] = "";
 	char portnum[6] = "443";
@@ -21,19 +21,19 @@ int mksock (char *url_str, BIO *out) {
 	/**
 	 * Remove trailing slash, if applicable.
 	 */
-	if (url_str[strlen(url_str)] == '/') {
-		url_str[strlen(url_str)] = '\0';
+	if (url[strlen(url)] == '/') {
+		url[strlen(url)] = '\0';
 	}
 
 	/**
 	 * Protocol type (e.g. https).
 	 */
-	strncpy(proto, url_str, (strchr(url_str, ':') - url_str));
+	strncpy(proto, url, (strchr(url, ':') - url));
 
 	/**
 	 * Hostname (e.g. www.example.com)
 	 */
-	strncpy(hostname, strstr(url_str, "://") + 3, sizeof(hostname));
+	strncpy(hostname, strstr(url, "://") + 3, sizeof(hostname));
 
 	/**
 	 * Port (if applicable).
