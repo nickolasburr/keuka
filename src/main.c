@@ -173,11 +173,6 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Establish connection state.
-	 */
-	ssl = SSL_new(ctx);
-
-	/**
 	 * Make TCP socket connection.
 	 */
 	server = mksock(url, outbio);
@@ -185,6 +180,11 @@ int main (int argc, char **argv) {
 	if (server != 0) {
 		BIO_printf(outbio, "Successfully made TCP connection to %s.\n\n", url);
 	}
+
+	/**
+	 * Establish connection state.
+	 */
+	ssl = SSL_new(ctx);
 
 	/**
 	 * Attach the SSL session to the socket.
@@ -200,17 +200,18 @@ int main (int argc, char **argv) {
 		goto on_error;
 	}
 
+	/**
+	 * Get current cipher.
+	 */
 	cipher = SSL_get_current_cipher(ssl);
 
 	BIO_printf(outbio, "Using cipher %s\n", SSL_CIPHER_get_name(cipher));
 	BIO_printf(outbio, "\n");
 
 	/**
-	 * Load remote certificate into X509 structure.
+	 * Load remote certificate into X509 struct.
 	 */
-	crt = SSL_get_peer_certificate(ssl);
-
-	if (is_null(crt)) {
+	if (is_null(crt = SSL_get_peer_certificate(ssl))) {
 		BIO_printf(outbio, "Error: Could not get certificate from %s.\n", url);
 
 		goto on_error;
@@ -231,10 +232,10 @@ int main (int argc, char **argv) {
 	/**
 	 * Get certificate chain.
 	 */
-	chain = SSL_get_peer_cert_chain(ssl);
-
-	if (is_null(chain)) {
+	if (is_null(chain = SSL_get_peer_cert_chain(ssl))) {
 		BIO_printf(outbio, "Error: Could not get certificate chain from %s.\n", url);
+
+		goto on_error;
 	}
 
 	BIO_printf(outbio, "Certificate chain:\n\n");
