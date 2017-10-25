@@ -25,8 +25,19 @@ make install
 ## Options
 
 + `--hostname`, `-H`: Hostname of the remote server.
++ `--method`, `-M`: Handshake method. See below for a list.
 + `--port`, `-P`: Alternate port number.
 + `--scheme`, `-S`: Alternate transport protocol to use for the exchange (e.g. sftp).
+
+## Methods
+
+Available methods:
+
++ `SSLv2`
++ `SSLv3`
++ `TLSv1`
++ `TLSv1_1`
++ `TLSv1_2`
 
 ## Examples
 
