@@ -12,7 +12,8 @@ int main (int argc, char **argv) {
 	char hostname[MAX_HOSTNAME_LENGTH],
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
-	     url[MAX_URL_LENGTH];
+	     url[MAX_URL_LENGTH],
+	     method_name[6];
 	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	STACK_OF(X509) *chain;
@@ -43,9 +44,11 @@ int main (int argc, char **argv) {
 		}
 
 		copy(hostname, argv[arg_index]);
-	}
+	} else {
+		fprintf(stderr, "Error: Missing --hostname\n");
 
-	fprintf(stdout, "Hostname: %s\n", hostname);
+		exit(EXIT_FAILURE);
+	}
 
 	/**
 	 * Check if --scheme option was given.
@@ -72,8 +75,6 @@ int main (int argc, char **argv) {
 		copy(scheme, "https");
 	}
 
-	fprintf(stdout, "Scheme: %s\n", scheme);
-
 	/**
 	 * Assemble URL for request.
 	 */
@@ -95,22 +96,81 @@ int main (int argc, char **argv) {
 	SSL_library_init();
 
 	/**
-	 * Initialize BIO stream, set handshake method.
+	 * Check if --method option was given.
+	 * If not, method will be negotiated.
+	 */
+	if (in_array("--method", argv, argc) ||
+	    in_array("-M", argv, argc)) {
+
+		opt_index = (index_of("--method", argv, argc) != NOT_FOUND)
+		          ? index_of("--method", argv, argc)
+		          : index_of("-M", argv, argc);
+
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "--method: Missing argument\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		copy(method_name, argv[arg_index]);
+
+		/**
+		 * Force specific method for handshake.
+		 */
+		switch (get_const_from_key(method_name)) {
+			case OPT_SSLV2:
+				method = SSLv2_client_method();
+
+				/**
+				 * Manually clear SSL_OP_NO_SSLv2 so we
+				 * can downgrade the handshake properly.
+				 */
+				SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv2);
+				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
+
+				break;
+			case OPT_SSLV3:
+				method = SSLv3_client_method();
+				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
+
+				break;
+			case OPT_TLSV1:
+				method = TLSv1_client_method();
+				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
+
+				break;
+			case OPT_TLSV1_1:
+				method = TLSv1_1_client_method();
+				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_2);
+
+				break;
+			case OPT_TLSV1_2:
+				method = TLSv1_2_client_method();
+				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
+
+				break;
+			default:
+				fprintf(stderr, "%s is not a valid method type\n", method_name);
+
+				exit(EXIT_FAILURE);
+		}
+	} else {
+		method = SSLv23_client_method();
+	}
+
+	/**
+	 * Initialize BIO stream.
 	 */
 	outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
-	method = SSLv23_client_method();
 
 	/**
 	 * Establish new SSL context.
 	 */
 	if (is_null(ctx = SSL_CTX_new(method))) {
-		BIO_printf(outbio, "Unable to create a new SSL context structure.\n");
-	}
+		BIO_printf(outbio, "Unable to establish new SSL context structure.\n");
 
-	/**
-	 * Disabling SSLv2 will leave SSLv3 and TLSv1 available for negotiation.
-	 */
-	SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2);
+		goto on_error;
+	}
 
 	/**
 	 * Establish connection state.
@@ -123,7 +183,7 @@ int main (int argc, char **argv) {
 	server = mksock(url, outbio);
 
 	if (server != 0) {
-		BIO_printf(outbio, "Successfully made TCP connection to: %s.\n\n", url);
+		BIO_printf(outbio, "Successfully made TCP connection to %s.\n\n", url);
 	}
 
 	/**
@@ -133,16 +193,16 @@ int main (int argc, char **argv) {
 
 	/**
 	 * Bridge the connection.
-	 *
-	 * @todo: Throw an exception if an error was encountered.
 	 */
 	if (SSL_connect(ssl) != 1) {
-		BIO_printf(outbio, "Error: Could not build a SSL session to: %s.\n", url);
+		BIO_printf(outbio, "Error: Could not build an SSL session to %s.\n", url);
+
+		goto on_error;
 	}
 
 	cipher = SSL_get_current_cipher(ssl);
 
-	BIO_printf(outbio, "%s, Cipher is %s\n", SSL_CIPHER_get_version(cipher), SSL_CIPHER_get_name(cipher));
+	BIO_printf(outbio, "Using cipher %s\n", SSL_CIPHER_get_name(cipher));
 	BIO_printf(outbio, "\n");
 
 	/**
@@ -152,6 +212,8 @@ int main (int argc, char **argv) {
 
 	if (is_null(crt)) {
 		BIO_printf(outbio, "Error: Could not get certificate from %s.\n", url);
+
+		goto on_error;
 	}
 
 	/**
@@ -162,7 +224,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Output certificate subject.
 	 */
-	BIO_printf(outbio, "Displaying certificate subject:\n\n");
+	BIO_printf(outbio, "Certificate subject:\n\n");
 	X509_NAME_print_ex(outbio, crtname, 2, XN_FLAG_SEP_MULTILINE);
 	BIO_printf(outbio, "\n\n");
 
@@ -175,7 +237,7 @@ int main (int argc, char **argv) {
 		BIO_printf(outbio, "Error: Could not get certificate chain from %s.\n", url);
 	}
 
-	BIO_printf(outbio, "Displaying certificate chain:\n\n");
+	BIO_printf(outbio, "Certificate chain:\n\n");
 
 	for (crt_index = 0; crt_index < sk_X509_num(chain); crt_index += 1) {
 		tcrt = sk_X509_value(chain, crt_index);
@@ -199,4 +261,12 @@ int main (int argc, char **argv) {
 	SSL_CTX_free(ctx);
 
 	return EXIT_SUCCESS;
+
+on_error:
+	SSL_free(ssl);
+	close(server);
+	X509_free(crt);
+	SSL_CTX_free(ctx);
+
+	return EXIT_FAILURE;
 }
