@@ -8,7 +8,7 @@
 
 int main (int argc, char **argv) {
 	size_t crt_index;
-	int opt_index, arg_index, last_index, server;
+	int opt_index, arg_index, fullchain, last_index, server, raw;
 	char hostname[MAX_HOSTNAME_LENGTH],
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
@@ -16,8 +16,9 @@ int main (int argc, char **argv) {
 	     method_name[6];
 	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
+	ASN1_INTEGER *asn1_serial;
 	STACK_OF(X509) *chain;
-	BIO *outbio;
+	BIO *bp;
 	X509 *crt, *tcrt;
 	X509_NAME *crtname, *tcrtname;
 	SSL_CTX *ctx;
@@ -25,6 +26,33 @@ int main (int argc, char **argv) {
 
 	last_index = (argc - 1);
 	server = 0;
+
+	/**
+	 * Hide full certificate chain,
+	 * exclude raw output by default.
+	 */
+	fullchain = 0;
+	raw = 0;
+
+	/**
+	 * If --chain option was given, output
+	 * the entire certificate chain.
+	 */
+	if (in_array("--chain", argv, argc) ||
+	    in_array("-C", argv, argc)) {
+
+		fullchain = 1;
+	}
+
+	/**
+	 * If --raw option was given, output
+	 * raw certificate contents to stdout.
+	 */
+	if (in_array("--raw", argv, argc) ||
+	    in_array("-r", argv, argc)) {
+
+		raw = 1;
+	}
 
 	/**
 	 * Check if --hostname option was given.
@@ -159,43 +187,46 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Initialize BIO stream.
+	 * Initialize BIO stream pointer.
 	 */
-	outbio = BIO_new_fp(stdout, BIO_NOCLOSE);
+	bp = BIO_new_fp(stdout, BIO_NOCLOSE);
 
 	/**
 	 * Establish new SSL context.
 	 */
 	if (is_null(ctx = SSL_CTX_new(method))) {
-		BIO_printf(outbio, "Unable to establish new SSL context structure.\n");
+		BIO_printf(bp, "Unable to establish new SSL context structure.\n");
 
 		goto on_error;
 	}
 
+	SSL_CTX_set_ssl_version(ctx, method);
+
 	/**
 	 * Make TCP socket connection.
+	 *
+	 * @todo: Add check, throw exception on failure.
 	 */
-	server = mksock(url, outbio);
-
-	if (server != 0) {
-		BIO_printf(outbio, "Successfully made TCP connection to %s.\n\n", url);
-	}
+	server = mksock(url, bp);
 
 	/**
-	 * Establish connection state.
+	 * Establish connection, set connection state (client mode).
 	 */
 	ssl = SSL_new(ctx);
+	SSL_set_connect_state(ssl);
 
 	/**
 	 * Attach the SSL session to the socket.
 	 */
-	SSL_set_fd(ssl, server);
+	if (is_error(SSL_set_fd(ssl, server))) {
+		BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
+	}
 
 	/**
 	 * Bridge the connection.
 	 */
 	if (SSL_connect(ssl) != 1) {
-		BIO_printf(outbio, "Error: Could not build an SSL session to %s.\n", url);
+		BIO_printf(bp, "Error: Could not build an SSL session to %s.\n", url);
 
 		goto on_error;
 	}
@@ -204,53 +235,61 @@ int main (int argc, char **argv) {
 	 * Get current cipher.
 	 */
 	cipher = SSL_get_current_cipher(ssl);
+	BIO_printf(bp, "Cipher: %s\n", SSL_CIPHER_get_name(cipher));
 
-	BIO_printf(outbio, "Using cipher %s\n", SSL_CIPHER_get_name(cipher));
-	BIO_printf(outbio, "\n");
+	if (fullchain) {
+		/**
+		 * Get certificate chain.
+		 */
+		if (is_null(chain = SSL_get_peer_cert_chain(ssl))) {
+			BIO_printf(bp, "Error: Could not get certificate chain from %s.\n", url);
 
-	/**
-	 * Load remote certificate into X509 struct.
-	 */
-	if (is_null(crt = SSL_get_peer_certificate(ssl))) {
-		BIO_printf(outbio, "Error: Could not get certificate from %s.\n", url);
+			goto on_error;
+		}
 
-		goto on_error;
-	}
+		BIO_printf(bp, "Chain:\n\n");
 
-	/**
-	 * Get certificate subject.
-	 */
-	crtname = X509_get_subject_name(crt);
+		for (crt_index = 0; crt_index < sk_X509_num(chain); crt_index += 1) {
+			tcrt = sk_X509_value(chain, crt_index);
+			tcrtname = X509_get_subject_name(tcrt);
 
-	/**
-	 * Output certificate subject.
-	 */
-	BIO_printf(outbio, "Certificate subject:\n\n");
-	X509_NAME_print_ex(outbio, crtname, 2, XN_FLAG_SEP_MULTILINE);
-	BIO_printf(outbio, "\n\n");
+			/**
+			 * Output certificate chain.
+			 */
+			X509_NAME_print_ex(bp, tcrtname, 2, XN_FLAG_SEP_CPLUS_SPC);
+			BIO_printf(bp, "\n");
 
-	/**
-	 * Get certificate chain.
-	 */
-	if (is_null(chain = SSL_get_peer_cert_chain(ssl))) {
-		BIO_printf(outbio, "Error: Could not get certificate chain from %s.\n", url);
+			if (raw) {
+				BIO_printf(bp, "\n");
+				PEM_write_bio_X509(bp, tcrt);
+				BIO_printf(bp, "\n");
+			}
+		}
+	} else {
+		/**
+		 * Load remote certificate into X509 struct.
+		 */
+		if (is_null(crt = SSL_get_peer_certificate(ssl))) {
+			BIO_printf(bp, "Error: Could not get certificate from %s.\n", url);
 
-		goto on_error;
-	}
-
-	BIO_printf(outbio, "Certificate chain:\n\n");
-
-	for (crt_index = 0; crt_index < sk_X509_num(chain); crt_index += 1) {
-		tcrt = sk_X509_value(chain, crt_index);
-		tcrtname = X509_get_subject_name(tcrt);
+			goto on_error;
+		}
 
 		/**
-		 * Output certificate chain.
+		 * Get certificate subject, serial number.
 		 */
-		X509_NAME_print_ex(outbio, tcrtname, 2, XN_FLAG_SEP_MULTILINE);
-		BIO_printf(outbio, "\n\n");
-		PEM_write_bio_X509(outbio, tcrt);
-		BIO_printf(outbio, "\n");
+		crtname = X509_get_subject_name(crt);
+		asn1_serial = X509_get_serialNumber(crt);
+
+		/**
+		 * Output certificate subject.
+		 */
+		BIO_printf(bp, "Subject: ");
+		X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
+		BIO_printf(bp, "\n");
+		BIO_printf(bp, "Serial: ");
+		i2a_ASN1_INTEGER(bp, asn1_serial);
+		BIO_printf(bp, "\n");
 	}
 
 	/**
@@ -264,6 +303,8 @@ int main (int argc, char **argv) {
 	return EXIT_SUCCESS;
 
 on_error:
+	BIO_printf(bp, "\n");
+	ERR_print_errors(bp);
 	SSL_free(ssl);
 	close(server);
 	X509_free(crt);
