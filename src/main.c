@@ -228,7 +228,6 @@ int main (int argc, char **argv) {
 	 * Establish connection, get cipher.
 	 */
 	ssl = SSL_new(ctx);
-	cipher = SSL_get_current_cipher(ssl);
 
 	/**
 	 * Manually set state in client mode.
@@ -264,8 +263,12 @@ int main (int argc, char **argv) {
 		 * @todo: See above to fix this. It's very dangerous.
 		 */
 		SSL_set_cipher_list(ssl, argv[arg_index]);
+		cipher = SSL_get_current_cipher(ssl);
+
 		copy(ciphername, SSL_CIPHER_get_name(cipher));
 	} else {
+		cipher = SSL_get_current_cipher(ssl);
+
 		copy(ciphername, SSL_CIPHER_get_name(cipher));
 	}
 
@@ -289,8 +292,7 @@ int main (int argc, char **argv) {
 		/**
 		 * Get current cipher.
 		 */
-		cipher = SSL_get_current_cipher(ssl);
-		BIO_printf(bp, "--- Cipher: %s\n", SSL_CIPHER_get_name(cipher));
+		BIO_printf(bp, "--- Cipher: %s\n", ciphername);
 	}
 
 	if (chain) {
