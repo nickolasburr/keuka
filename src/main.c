@@ -8,7 +8,8 @@
 
 int main (int argc, char **argv) {
 	size_t crt_index;
-	int opt_index, arg_index, fullchain, last_index, server, raw;
+	int opt_index, arg_index, last_index;
+	int chain, cypher, serial, server, raw;
 	char hostname[MAX_HOSTNAME_LENGTH],
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
@@ -17,7 +18,7 @@ int main (int argc, char **argv) {
 	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	ASN1_INTEGER *asn1_serial;
-	STACK_OF(X509) *chain;
+	STACK_OF(X509) *fullchain;
 	BIO *bp;
 	X509 *crt, *tcrt;
 	X509_NAME *crtname, *tcrtname;
@@ -31,8 +32,10 @@ int main (int argc, char **argv) {
 	 * Hide full certificate chain,
 	 * exclude raw output by default.
 	 */
-	fullchain = 0;
+	cypher = 0;
+	chain = 0;
 	raw = 0;
+	serial = 0;
 
 	/**
 	 * If --chain option was given, output
@@ -41,7 +44,7 @@ int main (int argc, char **argv) {
 	if (in_array("--chain", argv, argc) ||
 	    in_array("-C", argv, argc)) {
 
-		fullchain = 1;
+		chain = 1;
 	}
 
 	/**
@@ -52,6 +55,16 @@ int main (int argc, char **argv) {
 	    in_array("-r", argv, argc)) {
 
 		raw = 1;
+	}
+
+	/**
+	 * If --serial option was given, output
+	 * serial number for the certificate(s).
+	 */
+	if (in_array("--serial", argv, argc) ||
+	    in_array("-S", argv, argc)) {
+
+		serial = 1;
 	}
 
 	/**
@@ -231,37 +244,53 @@ int main (int argc, char **argv) {
 		goto on_error;
 	}
 
-	/**
-	 * Get current cipher.
-	 */
-	cipher = SSL_get_current_cipher(ssl);
-	BIO_printf(bp, "Cipher: %s\n", SSL_CIPHER_get_name(cipher));
+	if (cypher) {
+		/**
+		 * Get current cipher.
+		 */
+		cipher = SSL_get_current_cipher(ssl);
+		BIO_printf(bp, "--- Cipher: %s\n", SSL_CIPHER_get_name(cipher));
+	}
 
-	if (fullchain) {
+	if (chain) {
 		/**
 		 * Get certificate chain.
 		 */
-		if (is_null(chain = SSL_get_peer_cert_chain(ssl))) {
+		if (is_null(fullchain = SSL_get_peer_cert_chain(ssl))) {
 			BIO_printf(bp, "Error: Could not get certificate chain from %s.\n", url);
 
 			goto on_error;
 		}
 
-		BIO_printf(bp, "Chain:\n\n");
+		BIO_printf(bp, "--- Certificate Chain:\n");
 
-		for (crt_index = 0; crt_index < sk_X509_num(chain); crt_index += 1) {
-			tcrt = sk_X509_value(chain, crt_index);
+		for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
+			tcrt = sk_X509_value(fullchain, crt_index);
 			tcrtname = X509_get_subject_name(tcrt);
 
 			/**
 			 * Output certificate chain.
 			 */
-			X509_NAME_print_ex(bp, tcrtname, 2, XN_FLAG_SEP_CPLUS_SPC);
+			BIO_printf(bp, "%5d:", (int) crt_index);
+			X509_NAME_print_ex(bp, tcrtname, 1, XN_FLAG_SEP_CPLUS_SPC);
+
+			if (serial) {
+				BIO_printf(bp, " [");
+				i2a_ASN1_INTEGER(bp, X509_get_serialNumber(tcrt));
+				BIO_printf(bp, "]");
+			}
+
+			BIO_printf(bp, "\n");
+		}
+
+		/**
+		 * Output raw certificate contents if --raw option was specified.
+		 */
+		if (raw) {
 			BIO_printf(bp, "\n");
 
-			if (raw) {
-				BIO_printf(bp, "\n");
-				PEM_write_bio_X509(bp, tcrt);
+			for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
+				PEM_write_bio_X509(bp, sk_X509_value(fullchain, crt_index));
 				BIO_printf(bp, "\n");
 			}
 		}
@@ -279,36 +308,49 @@ int main (int argc, char **argv) {
 		 * Get certificate subject, serial number.
 		 */
 		crtname = X509_get_subject_name(crt);
-		asn1_serial = X509_get_serialNumber(crt);
 
 		/**
 		 * Output certificate subject.
 		 */
-		BIO_printf(bp, "Subject: ");
+		BIO_printf(bp, "--- Subject: ");
 		X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
 		BIO_printf(bp, "\n");
-		BIO_printf(bp, "Serial: ");
-		i2a_ASN1_INTEGER(bp, asn1_serial);
-		BIO_printf(bp, "\n");
+
+		/**
+		 * If --serial option was given, output ASN1 serial.
+		 */
+		if (serial) {
+			BIO_printf(bp, "--- Serial: ");
+			i2a_ASN1_INTEGER(bp, X509_get_serialNumber(crt));
+			BIO_printf(bp, "\n");
+		}
+
+		/**
+		 * @todo: Output raw certficate contents if --raw was given.
+		 */
 	}
 
 	/**
 	 * Run cleanup tasks.
 	 */
+	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
 	X509_free(crt);
 	SSL_CTX_free(ctx);
+	ERR_free_strings();
 
 	return EXIT_SUCCESS;
 
 on_error:
 	BIO_printf(bp, "\n");
 	ERR_print_errors(bp);
+	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
 	X509_free(crt);
 	SSL_CTX_free(ctx);
+	ERR_free_strings();
 
 	return EXIT_FAILURE;
 }
