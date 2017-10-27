@@ -361,6 +361,11 @@ int main (int argc, char **argv) {
 		X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
 		BIO_printf(bp, "\n");
 
+		if (raw) {
+			BIO_printf(bp, "\n");
+			PEM_write_bio_X509(bp, crt);
+		}
+
 		/**
 		 * If --serial option was given, output ASN1 serial.
 		 */
