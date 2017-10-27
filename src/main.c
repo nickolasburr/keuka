@@ -14,7 +14,8 @@ int main (int argc, char **argv) {
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
 	     url[MAX_URL_LENGTH],
-	     method_name[6];
+	     methodname[MAX_METHOD_LENGTH],
+	     ciphername[MAX_CIPHER_LENGTH];
 	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	ASN1_INTEGER *asn1_serial;
@@ -30,7 +31,8 @@ int main (int argc, char **argv) {
 
 	/**
 	 * Hide full certificate chain,
-	 * exclude raw output by default.
+	 * suppress raw certificate output,
+	 * suppress serial number, by default.
 	 */
 	cypher = 0;
 	chain = 0;
@@ -42,7 +44,7 @@ int main (int argc, char **argv) {
 	 * the entire certificate chain.
 	 */
 	if (in_array("--chain", argv, argc) ||
-	    in_array("-C", argv, argc)) {
+	    in_array("-c", argv, argc)) {
 
 		chain = 1;
 	}
@@ -62,7 +64,7 @@ int main (int argc, char **argv) {
 	 * serial number for the certificate(s).
 	 */
 	if (in_array("--serial", argv, argc) ||
-	    in_array("-S", argv, argc)) {
+	    in_array("-s", argv, argc)) {
 
 		serial = 1;
 	}
@@ -153,12 +155,12 @@ int main (int argc, char **argv) {
 			exit(EXIT_FAILURE);
 		}
 
-		copy(method_name, argv[arg_index]);
+		copy(methodname, argv[arg_index]);
 
 		/**
 		 * Force specific method for handshake.
 		 */
-		switch (get_const_from_key(method_name)) {
+		switch (get_bitmask_from_key(methodname)) {
 			case OPT_SSLV2:
 				method = SSLv2_client_method();
 
@@ -191,7 +193,7 @@ int main (int argc, char **argv) {
 
 				break;
 			default:
-				fprintf(stderr, "%s is not a valid method type\n", method_name);
+				fprintf(stderr, "%s is not a valid method type\n", methodname);
 
 				exit(EXIT_FAILURE);
 		}
@@ -223,10 +225,49 @@ int main (int argc, char **argv) {
 	server = mksock(url, bp);
 
 	/**
-	 * Establish connection, set connection state (client mode).
+	 * Establish connection, get cipher.
 	 */
 	ssl = SSL_new(ctx);
+	cipher = SSL_get_current_cipher(ssl);
+
+	/**
+	 * Manually set state in client mode.
+	 */
 	SSL_set_connect_state(ssl);
+
+	/**
+	 * Check if --cipher option was given.
+	 * If not, negotiate during handshake.
+	 *
+	 * @todo: This currently allows any string
+	 *        to be set as the cipher name. Instead,
+	 *        get a list of ciphers currently available
+	 *        on this system and throw an exception if
+	 *        an invalid cipher name was given.
+	 */
+	if (in_array("--cipher", argv, argc) ||
+	    in_array("-C", argv, argc)) {
+
+		opt_index = (index_of("--cipher", argv, argc) != NOT_FOUND)
+		          ? index_of("--cipher", argv, argc)
+		          : index_of("-C", argv, argc);
+
+		if ((arg_index = (opt_index + 1)) > last_index) {
+			fprintf(stderr, "--cipher: Missing argument\n");
+
+			exit(EXIT_FAILURE);
+		}
+
+		cypher = 1;
+
+		/**
+		 * @todo: See above to fix this. It's very dangerous.
+		 */
+		SSL_set_cipher_list(ssl, argv[arg_index]);
+		copy(ciphername, SSL_CIPHER_get_name(cipher));
+	} else {
+		copy(ciphername, SSL_CIPHER_get_name(cipher));
+	}
 
 	/**
 	 * Attach the SSL session to the socket.
@@ -274,10 +315,12 @@ int main (int argc, char **argv) {
 			BIO_printf(bp, "%5d:", (int) crt_index);
 			X509_NAME_print_ex(bp, tcrtname, 1, XN_FLAG_SEP_CPLUS_SPC);
 
+			/**
+			 * If --serial option was given, output ASN1 serial.
+			 */
 			if (serial) {
-				BIO_printf(bp, " [");
+				BIO_printf(bp, ", Serial=");
 				i2a_ASN1_INTEGER(bp, X509_get_serialNumber(tcrt));
-				BIO_printf(bp, "]");
 			}
 
 			BIO_printf(bp, "\n");
