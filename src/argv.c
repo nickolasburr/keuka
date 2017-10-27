@@ -15,9 +15,9 @@ static option_t options[] = {
 };
 
 /**
- * Get constant associated with key.
+ * Get bitmask associated with key.
  */
-int get_const_from_key (char *key) {
+int get_bitmask_from_key (char *key) {
 	int index;
 
 	for (index = 0; index < NUM_OPTS; index += 1) {
