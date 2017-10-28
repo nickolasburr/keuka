@@ -85,7 +85,7 @@ int main (int argc, char **argv) {
 	 * output signature algorithm used for certificate(s).
 	 */
 	if (in_array("--signature-algorithm", argv, argc) ||
-	    in_array("-S", argv, argc)) {
+	    in_array("-A", argv, argc)) {
 
 		sig_algo = 1;
 	}
