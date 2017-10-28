@@ -8,13 +8,9 @@
 
 /**
  * A more expressive way of determining if an
- * error was encountered from a return value.
- *
- * @note: This relies on the C convention of
- *        returning -1 on error. If a function
- *        returns a different value on error,
- *        manually check the value instead.
+ * error was encountered by comparing a return
+ * value against a known error code (e.g. -1).
  */
-int is_error (int value) {
-	return (value == -1);
+int is_error (int value, int code) {
+	return (value == code);
 }
