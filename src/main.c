@@ -17,12 +17,11 @@
 int main (int argc, char **argv) {
 	size_t crt_index, sig_bytes;
 	int opt_index, arg_index, last_index, sig_type_err;
-	int chain, cypher, issuer, meth, serial, server, raw, sig_algo;
+	int chain, cipher, issuer, meth, serial, server, raw, sig_algo;
 	const char *hostname;
 	char port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
 	     url[MAX_URL_LENGTH];
-	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	ASN1_INTEGER *asn1_serial;
 	ASN1_STRING *asn1_sig;
@@ -53,7 +52,7 @@ int main (int argc, char **argv) {
 	 * Initialize defaults.
 	 */
 	chain = 0;
-	cypher = 0;
+	cipher = 0;
 	issuer = 0;
 	meth = 0;
 	raw = 0;
@@ -101,7 +100,7 @@ int main (int argc, char **argv) {
 	if (in_array("--cipher", argv, argc) ||
 	    in_array("-C", argv, argc)) {
 
-		cypher = 1;
+		cipher = 1;
 	}
 
 	/**
@@ -265,7 +264,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Print cipher used if --cipher was given.
 	 */
-	if (cypher) {
+	if (cipher) {
 		BIO_printf(bp, "--- Cipher: %s\n", SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
 	}
 
