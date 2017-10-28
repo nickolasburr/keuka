@@ -9,6 +9,6 @@
 
 #include "common.h"
 
-int is_error(int);
+int is_error(int, int);
 
 #endif /* KEUKA_ERROR_H */
