@@ -29,7 +29,7 @@ make install
 + `--issuer`, `-i`: Show certificate issuer information.
 + `--method`, `-m`: Show method negotiated during handshake.
 + `--raw`, `-r`: Output raw certificate contents.
-+ `--serial`, `-s`: Show certificate serial number.
++ `--serial`, `-S`: Show certificate serial number.
 + `--signature-algorithm`, `-A`: Show certificate signature algorithm.
 
 ## Examples
