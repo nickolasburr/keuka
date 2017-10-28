@@ -11,9 +11,6 @@
 #include "error.h"
 #include "utils.h"
 
-#define MAX_CIPHER_LENGTH 30
-#define MAX_METHOD_LENGTH 8
-
 #define MAX_HOSTNAME_LENGTH 256
 #define MAX_PORT_LENGTH     6
 #define MAX_SCHEME_LENGTH   6
