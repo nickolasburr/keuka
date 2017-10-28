@@ -24,10 +24,15 @@ make install
 
 ## Options
 
++ `--chain`, `-c`: Show full certificate chain.
++ `--cipher`, `-C`: Show cipher used in handshake.
 + `--hostname`, `-H`: Hostname of the remote server.
 + `--method`, `-M`: Handshake method. See below for a list.
 + `--port`, `-P`: Alternate port number.
++ `--raw`, `-r`: Output raw certificate(s) in addition to information table.
 + `--scheme`, `-S`: Alternate transport protocol to use for the exchange (e.g. sftp).
++ `--serial`, `-s`: Show certificate serial number.
++ `--signature-algorithm`, `-A`: Show signature algorithm.
 
 ## Methods
 
