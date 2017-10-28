@@ -6,16 +6,22 @@
 
 #include "main.h"
 
+/**
+ * Usage:
+ *
+ * keuka --chain --cipher --raw --serial google.com
+ * keuka --issuer --method --signature-algorithm -- amazon.com
+ * keuka -A -C -i -m github.com
+ */
+
 int main (int argc, char **argv) {
 	size_t crt_index, sig_bytes;
 	int opt_index, arg_index, last_index, sig_type_err;
-	int chain, cypher, serial, server, raw, sig_algo;
-	char hostname[MAX_HOSTNAME_LENGTH],
-	     port[MAX_PORT_LENGTH],
+	int chain, cypher, issuer, meth, serial, server, raw, sig_algo;
+	const char *hostname;
+	char port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
-	     url[MAX_URL_LENGTH],
-	     methodname[MAX_METHOD_LENGTH],
-	     ciphername[MAX_CIPHER_LENGTH];
+	     url[MAX_URL_LENGTH];
 	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	ASN1_INTEGER *asn1_serial;
@@ -32,17 +38,55 @@ int main (int argc, char **argv) {
 	server = 0;
 
 	/**
+	 * Options:
+	 *
+	 * --chain, -c: Show entire peer certificate chain.
+	 * --cipher, -C: Show cipher used for exchange.
+	 * --issuer, -i: Show certificate issuer information.
+	 * --method, -m: Show method version for exchange.
+	 * --raw, -r: Show raw certificate contents.
+	 * --serial, -S: Show certificate serial number.
+	 * --signature-algorithm, -A: Show signature algorithm.
+	 */
+
+	/**
 	 * Initialize defaults.
 	 */
-	cypher = 0;
 	chain = 0;
+	cypher = 0;
+	issuer = 0;
+	meth = 0;
 	raw = 0;
 	serial = 0;
 	sig_algo = 0;
 
 	/**
+	 * If no arguments were given,
+	 * complain to stderr and exit.
+	 */
+	if (last_index < 1) {
+		fprintf(stderr, "Error: Hostname not specified.\n");
+
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * Limit length of hostname given as an argument.
+	 */
+	if (length(argv[last_index]) > MAX_HOSTNAME_LENGTH) {
+		fprintf(stderr, "Error: Hostname exceeds maximum length\n");
+
+		exit(EXIT_FAILURE);
+	}
+
+	/**
+	 * The last element in argv should be the peer hostname.
+	 */
+	hostname = argv[last_index];
+
+	/**
 	 * If --chain option was given, output
-	 * the entire certificate chain.
+	 * the entire peer certificate chain.
 	 */
 	if (in_array("--chain", argv, argc) ||
 	    in_array("-c", argv, argc)) {
@@ -61,6 +105,26 @@ int main (int argc, char **argv) {
 	}
 
 	/**
+	 * If --issuer option was given, output
+	 * issuer information for certificate.
+	 */
+	if (in_array("--issuer", argv, argc) ||
+	    in_array("-i", argv, argc)) {
+
+		issuer = 1;
+	}
+
+	/**
+	 * If --method option was given, output
+	 * version of method used for handshake.
+	 */
+	if (in_array("--method", argv, argc) ||
+	    in_array("-m", argv, argc)) {
+
+		meth = 1;
+	}
+
+	/**
 	 * If --raw option was given, output
 	 * raw certificate contents to stdout.
 	 */
@@ -75,7 +139,7 @@ int main (int argc, char **argv) {
 	 * serial number for the certificate(s).
 	 */
 	if (in_array("--serial", argv, argc) ||
-	    in_array("-s", argv, argc)) {
+	    in_array("-S", argv, argc)) {
 
 		serial = 1;
 	}
@@ -91,42 +155,17 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Check if --hostname option was given.
-	 * If not, throw an exception and exit.
-	 */
-	if (in_array("--hostname", argv, argc) ||
-	    in_array("-H", argv, argc)) {
-
-		opt_index = (index_of("--hostname", argv, argc) != NOT_FOUND)
-		          ? index_of("--hostname", argv, argc)
-		          : index_of("-H", argv, argc);
-
-		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "--hostname: Missing argument\n");
-
-			exit(EXIT_FAILURE);
-		}
-
-		copy(hostname, argv[arg_index]);
-	} else {
-		fprintf(stderr, "Error: Missing --hostname\n");
-
-		exit(EXIT_FAILURE);
-	}
-
-	/**
 	 * Check if --scheme option was given.
 	 * If not, set default scheme to https.
 	 *
-	 * @todo: Whitelist schemes and throw an
-	 *        exception on unsupported schemes.
+	 * @note: Might get rid of this or implement differently.
 	 */
 	if (in_array("--scheme", argv, argc) ||
-	    in_array("-S", argv, argc)) {
+	    in_array("-s", argv, argc)) {
 
 		opt_index = (index_of("--scheme", argv, argc) != NOT_FOUND)
 		          ? index_of("--scheme", argv, argc)
-		          : index_of("-S", argv, argc);
+		          : index_of("-s", argv, argc);
 
 		if ((arg_index = (opt_index + 1)) > last_index) {
 			fprintf(stderr, "--scheme: Missing argument\n");
@@ -160,72 +199,14 @@ int main (int argc, char **argv) {
 	SSL_library_init();
 
 	/**
-	 * Check if --method option was given.
-	 * If not, method will be negotiated.
-	 */
-	if (in_array("--method", argv, argc) ||
-	    in_array("-M", argv, argc)) {
-
-		opt_index = (index_of("--method", argv, argc) != NOT_FOUND)
-		          ? index_of("--method", argv, argc)
-		          : index_of("-M", argv, argc);
-
-		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "--method: Missing argument\n");
-
-			exit(EXIT_FAILURE);
-		}
-
-		copy(methodname, argv[arg_index]);
-
-		/**
-		 * Force specific method for handshake.
-		 */
-		switch (get_bitmask_from_key(methodname)) {
-			case OPT_SSLV2:
-				method = SSLv2_client_method();
-
-				/**
-				 * Manually clear SSL_OP_NO_SSLv2 so we
-				 * can downgrade the handshake properly.
-				 */
-				SSL_CTX_clear_options(ctx, SSL_OP_NO_SSLv2);
-				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
-
-				break;
-			case OPT_SSLV3:
-				method = SSLv3_client_method();
-				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
-
-				break;
-			case OPT_TLSV1:
-				method = TLSv1_client_method();
-				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1_1 | SSL_OP_NO_TLSv1_2);
-
-				break;
-			case OPT_TLSV1_1:
-				method = TLSv1_1_client_method();
-				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_2);
-
-				break;
-			case OPT_TLSV1_2:
-				method = TLSv1_2_client_method();
-				SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3 | SSL_OP_NO_TLSv1 | SSL_OP_NO_TLSv1_1);
-
-				break;
-			default:
-				fprintf(stderr, "%s is not a valid method type\n", methodname);
-
-				exit(EXIT_FAILURE);
-		}
-	} else {
-		method = SSLv23_client_method();
-	}
-
-	/**
 	 * Initialize BIO stream pointer.
 	 */
 	bp = BIO_new_fp(stdout, BIO_NOCLOSE);
+
+	/**
+	 * Method for peer connection.
+	 */
+	method = SSLv23_client_method();
 
 	/**
 	 * Establish new SSL context.
@@ -236,8 +217,6 @@ int main (int argc, char **argv) {
 		goto on_error;
 	}
 
-	SSL_CTX_set_ssl_version(ctx, method);
-
 	/**
 	 * Make TCP socket connection.
 	 *
@@ -245,20 +224,30 @@ int main (int argc, char **argv) {
 	 */
 	server = mksock(url, bp);
 
-	/**
-	 * Establish connection, get cipher.
-	 */
-	ssl = SSL_new(ctx);
+	if (is_error(server, -1)) {
+		fprintf(stderr, "Please specify a valid hostname.\n");
+
+		exit(EXIT_FAILURE);
+	}
 
 	/**
-	 * Manually set state in client mode.
+	 * Establish connection, set state in client mode.
 	 */
+	ssl = SSL_new(ctx);
 	SSL_set_connect_state(ssl);
+
+	/**
+	 * If --method option was given, output
+	 * version of method used for handshake.
+	 */
+	if (meth) {
+		BIO_printf(bp, "--- Method: %s\n", SSL_get_version(ssl));
+	}
 
 	/**
 	 * Attach the SSL session to the socket.
 	 */
-	if (is_error(SSL_set_fd(ssl, server))) {
+	if (is_error(SSL_set_fd(ssl, server), -1)) {
 		BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
 
 		goto on_error;
@@ -274,15 +263,10 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Get cipher name.
-	 */
-	copy(ciphername, SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
-
-	/**
 	 * Print cipher used if --cipher was given.
 	 */
 	if (cypher) {
-		BIO_printf(bp, "--- Cipher: %s\n", ciphername);
+		BIO_printf(bp, "--- Cipher: %s\n", SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
 	}
 
 	/**
@@ -308,8 +292,17 @@ int main (int argc, char **argv) {
 			 * Output certificate chain.
 			 */
 			BIO_printf(bp, "%5d: ", (int) crt_index);
-			BIO_printf(bp, "--- Subject:");
-			X509_NAME_print_ex(bp, tcrtname, 1, XN_FLAG_SEP_CPLUS_SPC);
+			BIO_printf(bp, "--- Subject: ");
+			X509_NAME_print_ex(bp, tcrtname, 0, XN_FLAG_SEP_CPLUS_SPC);
+
+			/**
+			 * If --issuer option was given, output certificate issuer information.
+			 */
+			if (issuer) {
+				BIO_printf(bp, "\n");
+				BIO_printf(bp, "%7s%s", "", "--- Issuer: ");
+				X509_NAME_print_ex(bp, X509_get_issuer_name(tcrt), 0, XN_FLAG_SEP_CPLUS_SPC);
+			}
 
 			/**
 			 * If --serial option was given, output ASN1 serial.
@@ -332,7 +325,7 @@ int main (int argc, char **argv) {
 				BIO_printf(bp, "%7s%s", "", "--- Signature Algorithm: ");
 				sig_type_err = i2a_ASN1_OBJECT(bp, sig_type->algorithm);
 
-				if (is_error(sig_type_err) || !sig_type_err) {
+				if (is_error(sig_type_err, -1) || is_error(sig_type_err, 0)) {
 					BIO_printf(bp, "Error: Could not get signature algorithm.\n");
 				}
 			}
@@ -374,11 +367,12 @@ int main (int argc, char **argv) {
 		BIO_printf(bp, "\n");
 
 		/**
-		 * Output raw certificate contents if --raw option was specified.
+		 * If --issuer option was given, output certificate issuer information.
 		 */
-		if (raw) {
+		if (issuer) {
+			BIO_printf(bp, "--- Issuer: ");
+			X509_NAME_print_ex(bp, X509_get_issuer_name(crt), 0, XN_FLAG_SEP_CPLUS_SPC);
 			BIO_printf(bp, "\n");
-			PEM_write_bio_X509(bp, crt);
 		}
 
 		/**
@@ -402,9 +396,17 @@ int main (int argc, char **argv) {
 			sig_type_err = i2a_ASN1_OBJECT(bp, sig_type->algorithm);
 			BIO_printf(bp, "\n");
 
-			if (is_error(sig_type_err) || !sig_type_err) {
+			if (is_error(sig_type_err, -1) || is_error(sig_type_err, 0)) {
 				BIO_printf(bp, "Error: Could not get signature algorithm.\n");
 			}
+		}
+
+		/**
+		 * Output raw certificate contents if --raw option was specified.
+		 */
+		if (raw) {
+			BIO_printf(bp, "\n");
+			PEM_write_bio_X509(bp, crt);
 		}
 	}
 
