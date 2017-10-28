@@ -9,7 +9,7 @@
 /**
  * Create TCP socket.
  */
-int mksock (char *url, BIO *out) {
+int mksock (char *url, BIO *bp) {
 	int sockfd, port;
 	char hostname[256] = "";
 	char portnum[6] = "443";
@@ -47,7 +47,7 @@ int mksock (char *url, BIO *out) {
 	port = atoi(portnum);
 
 	if (is_null(host = gethostbyname(hostname))) {
-		BIO_printf(out, "Error: Cannot resolve hostname %s.\n",  hostname);
+		BIO_printf(bp, "Error: Cannot resolve hostname %s.\n",  hostname);
 		abort();
 	}
 
@@ -64,11 +64,19 @@ int mksock (char *url, BIO *out) {
 	 * Initialize the rest of the struct.
 	 */
 	memset(&(dest_addr.sin_zero), '\0', 8);
-
 	tmp_ptr = inet_ntoa(dest_addr.sin_addr);
 
-	if (is_error(connect(sockfd, (struct sockaddr *) &dest_addr, sizeof(struct sockaddr)))) {
-		BIO_printf(out, "Error: Cannot connect to host %s [%s] on port %d.\n", hostname, tmp_ptr, port);
+	/**
+	 * @todo: Refactor for error handling. As it stands,
+	 *        if a bad hostname is given, the resolver
+	 *        complains and connect goes awry, leading
+	 *        to undefined behavior, and never reaching
+	 *        the inside of the if block we have below.
+	 */
+	if (is_error(connect(sockfd, (struct sockaddr *) &dest_addr, sizeof(struct sockaddr)), -1)) {
+		BIO_printf(bp, "Error: Cannot connect to host %s [%s] on port %d.\n", hostname, tmp_ptr, port);
+
+		return -1;
 	}
 
 	return sockfd;
