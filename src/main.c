@@ -7,9 +7,9 @@
 #include "main.h"
 
 int main (int argc, char **argv) {
-	size_t crt_index;
-	int opt_index, arg_index, last_index;
-	int chain, cypher, serial, server, raw;
+	size_t crt_index, sig_bytes;
+	int opt_index, arg_index, last_index, sig_type_err;
+	int chain, cypher, serial, server, raw, sig_algo;
 	char hostname[MAX_HOSTNAME_LENGTH],
 	     port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
@@ -19,6 +19,8 @@ int main (int argc, char **argv) {
 	const SSL_CIPHER *cipher;
 	const SSL_METHOD *method;
 	ASN1_INTEGER *asn1_serial;
+	ASN1_STRING *asn1_sig;
+	X509_ALGOR *sig_type;
 	STACK_OF(X509) *fullchain;
 	BIO *bp;
 	X509 *crt, *tcrt;
@@ -30,14 +32,13 @@ int main (int argc, char **argv) {
 	server = 0;
 
 	/**
-	 * Hide full certificate chain,
-	 * suppress raw certificate output,
-	 * suppress serial number, by default.
+	 * Initialize defaults.
 	 */
 	cypher = 0;
 	chain = 0;
 	raw = 0;
 	serial = 0;
+	sig_algo = 0;
 
 	/**
 	 * If --chain option was given, output
@@ -47,6 +48,16 @@ int main (int argc, char **argv) {
 	    in_array("-c", argv, argc)) {
 
 		chain = 1;
+	}
+
+	/**
+	 * If --cipher option was given, output
+	 * the cipher used for the exchange.
+	 */
+	if (in_array("--cipher", argv, argc) ||
+	    in_array("-C", argv, argc)) {
+
+		cypher = 1;
 	}
 
 	/**
@@ -67,6 +78,16 @@ int main (int argc, char **argv) {
 	    in_array("-s", argv, argc)) {
 
 		serial = 1;
+	}
+
+	/**
+	 * If --signature-algorithm option was given,
+	 * output signature algorithm used for certificate(s).
+	 */
+	if (in_array("--signature-algorithm", argv, argc) ||
+	    in_array("-S", argv, argc)) {
+
+		sig_algo = 1;
 	}
 
 	/**
@@ -235,48 +256,12 @@ int main (int argc, char **argv) {
 	SSL_set_connect_state(ssl);
 
 	/**
-	 * Check if --cipher option was given.
-	 * If not, negotiate during handshake.
-	 *
-	 * @todo: This currently allows any string
-	 *        to be set as the cipher name. Instead,
-	 *        get a list of ciphers currently available
-	 *        on this system and throw an exception if
-	 *        an invalid cipher name was given.
-	 */
-	if (in_array("--cipher", argv, argc) ||
-	    in_array("-C", argv, argc)) {
-
-		opt_index = (index_of("--cipher", argv, argc) != NOT_FOUND)
-		          ? index_of("--cipher", argv, argc)
-		          : index_of("-C", argv, argc);
-
-		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "--cipher: Missing argument\n");
-
-			exit(EXIT_FAILURE);
-		}
-
-		cypher = 1;
-
-		/**
-		 * @todo: See above to fix this. It's very dangerous.
-		 */
-		SSL_set_cipher_list(ssl, argv[arg_index]);
-		cipher = SSL_get_current_cipher(ssl);
-
-		copy(ciphername, SSL_CIPHER_get_name(cipher));
-	} else {
-		cipher = SSL_get_current_cipher(ssl);
-
-		copy(ciphername, SSL_CIPHER_get_name(cipher));
-	}
-
-	/**
 	 * Attach the SSL session to the socket.
 	 */
 	if (is_error(SSL_set_fd(ssl, server))) {
 		BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
+
+		goto on_error;
 	}
 
 	/**
@@ -288,16 +273,24 @@ int main (int argc, char **argv) {
 		goto on_error;
 	}
 
+	/**
+	 * Get cipher name.
+	 */
+	copy(ciphername, SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
+
+	/**
+	 * Print cipher used if --cipher was given.
+	 */
 	if (cypher) {
-		/**
-		 * Get current cipher.
-		 */
 		BIO_printf(bp, "--- Cipher: %s\n", ciphername);
 	}
 
+	/**
+	 * Print full chain if --chain was given.
+	 */
 	if (chain) {
 		/**
-		 * Get certificate chain.
+		 * Get peer certificate chain.
 		 */
 		if (is_null(fullchain = SSL_get_peer_cert_chain(ssl))) {
 			BIO_printf(bp, "Error: Could not get certificate chain from %s.\n", url);
@@ -314,15 +307,34 @@ int main (int argc, char **argv) {
 			/**
 			 * Output certificate chain.
 			 */
-			BIO_printf(bp, "%5d:", (int) crt_index);
+			BIO_printf(bp, "%5d: ", (int) crt_index);
+			BIO_printf(bp, "--- Subject:");
 			X509_NAME_print_ex(bp, tcrtname, 1, XN_FLAG_SEP_CPLUS_SPC);
 
 			/**
 			 * If --serial option was given, output ASN1 serial.
 			 */
 			if (serial) {
-				BIO_printf(bp, ", Serial=");
+				BIO_printf(bp, "\n");
+				BIO_printf(bp, "%7s%s", "", "--- Serial: ");
 				i2a_ASN1_INTEGER(bp, X509_get_serialNumber(tcrt));
+			}
+
+			/**
+			 * If --signature-algorithm option was given,
+			 * output signature algorithm for certificate(s).
+			 */
+			if (sig_algo) {
+				sig_type = tcrt->sig_alg;
+				asn1_sig = tcrt->signature;
+
+				BIO_printf(bp, "\n");
+				BIO_printf(bp, "%7s%s", "", "--- Signature Algorithm: ");
+				sig_type_err = i2a_ASN1_OBJECT(bp, sig_type->algorithm);
+
+				if (is_error(sig_type_err) || !sig_type_err) {
+					BIO_printf(bp, "Error: Could not get signature algorithm.\n");
+				}
 			}
 
 			BIO_printf(bp, "\n");
@@ -341,7 +353,7 @@ int main (int argc, char **argv) {
 		}
 	} else {
 		/**
-		 * Load remote certificate into X509 struct.
+		 * Get peer certificate.
 		 */
 		if (is_null(crt = SSL_get_peer_certificate(ssl))) {
 			BIO_printf(bp, "Error: Could not get certificate from %s.\n", url);
@@ -350,7 +362,7 @@ int main (int argc, char **argv) {
 		}
 
 		/**
-		 * Get certificate subject, serial number.
+		 * Get certificate subject.
 		 */
 		crtname = X509_get_subject_name(crt);
 
@@ -361,6 +373,9 @@ int main (int argc, char **argv) {
 		X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
 		BIO_printf(bp, "\n");
 
+		/**
+		 * Output raw certificate contents if --raw option was specified.
+		 */
 		if (raw) {
 			BIO_printf(bp, "\n");
 			PEM_write_bio_X509(bp, crt);
@@ -376,8 +391,21 @@ int main (int argc, char **argv) {
 		}
 
 		/**
-		 * @todo: Output raw certficate contents if --raw was given.
+		 * If --signature-algorithm option was given,
+		 * output signature algorithm for certificate(s).
 		 */
+		if (sig_algo) {
+			sig_type = crt->sig_alg;
+			asn1_sig = crt->signature;
+
+			BIO_printf(bp, "--- Signature Algorithm: ");
+			sig_type_err = i2a_ASN1_OBJECT(bp, sig_type->algorithm);
+			BIO_printf(bp, "\n");
+
+			if (is_error(sig_type_err) || !sig_type_err) {
+				BIO_printf(bp, "Error: Could not get signature algorithm.\n");
+			}
+		}
 	}
 
 	/**
