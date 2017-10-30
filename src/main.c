@@ -17,7 +17,7 @@
 int main (int argc, char **argv) {
 	size_t crt_index, sig_bytes;
 	int opt_index, arg_index, last_index, sig_type_err;
-	int chain, cipher, issuer, meth, serial, server, raw, sig_algo;
+	int chain, cipher, issuer, meth, serial, server, raw, sig_algo, validity;
 	const char *hostname;
 	char port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
@@ -58,6 +58,7 @@ int main (int argc, char **argv) {
 	raw = 0;
 	serial = 0;
 	sig_algo = 0;
+	validity = 0;
 
 	/**
 	 * If no arguments were given,
@@ -151,6 +152,16 @@ int main (int argc, char **argv) {
 	    in_array("-A", argv, argc)) {
 
 		sig_algo = 1;
+	}
+
+	/**
+	 * If --validity option was given, output
+	 * Not Before/Not After validity time range.
+	 */
+	if (in_array("--validity", argv, argc) ||
+	    in_array("-V", argv, argc)) {
+
+		validity = 1;
 	}
 
 	/**
@@ -329,6 +340,20 @@ int main (int argc, char **argv) {
 				}
 			}
 
+			/**
+			 * If --validity option was given, output the
+			 * range of Not Before/Not After timestamps.
+			 */
+			if (validity) {
+				BIO_printf(bp, "\n");
+				BIO_printf(bp, "%7s%s", "", "--- Validity:\n");
+				BIO_printf(bp, "%11s%s", "", "--- Not Before: ");
+				ASN1_TIME_print(bp, X509_get_notBefore(tcrt));
+				BIO_printf(bp, "\n");
+				BIO_printf(bp, "%11s%s", "", "--- Not After: ");
+				ASN1_TIME_print(bp, X509_get_notAfter(tcrt));
+			}
+
 			BIO_printf(bp, "\n");
 		}
 
@@ -401,6 +426,20 @@ int main (int argc, char **argv) {
 		}
 
 		/**
+		 * If --validity option was given, output the
+		 * range of Not Before/Not After timestamps.
+		 */
+		if (validity) {
+			BIO_printf(bp, "%s", "--- Validity:\n");
+			BIO_printf(bp, "%4s%s", "", "--- Not Before: ");
+			ASN1_TIME_print(bp, X509_get_notBefore(crt));
+			BIO_printf(bp, "\n");
+			BIO_printf(bp, "%4s%s", "", "--- Not After: ");
+			ASN1_TIME_print(bp, X509_get_notAfter(crt));
+			BIO_printf(bp, "\n");
+		}
+
+		/**
 		 * Output raw certificate contents if --raw option was specified.
 		 */
 		if (raw) {
@@ -412,6 +451,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Run cleanup tasks.
 	 */
+	ASN1_STRING_free(asn1_sig);
 	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
@@ -424,6 +464,7 @@ int main (int argc, char **argv) {
 on_error:
 	BIO_printf(bp, "\n");
 	ERR_print_errors(bp);
+	ASN1_STRING_free(asn1_sig);
 	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
