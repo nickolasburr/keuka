@@ -451,7 +451,6 @@ int main (int argc, char **argv) {
 	/**
 	 * Run cleanup tasks.
 	 */
-	ASN1_STRING_free(asn1_sig);
 	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
@@ -464,7 +463,6 @@ int main (int argc, char **argv) {
 on_error:
 	BIO_printf(bp, "\n");
 	ERR_print_errors(bp);
-	ASN1_STRING_free(asn1_sig);
 	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
