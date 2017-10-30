@@ -31,6 +31,7 @@ make install
 + `--raw`, `-r`: Output raw certificate contents.
 + `--serial`, `-S`: Show certificate serial number.
 + `--signature-algorithm`, `-A`: Show certificate signature algorithm.
++ `--validity`, `-V`: Show Not Before/Not After validity time range.
 
 ## Examples
 
@@ -112,4 +113,14 @@ JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
        --- Signature Algorithm: sha256WithRSAEncryption
     2: --- Subject: C=US, ST=Arizona, L=Scottsdale, O=Starfield Technologies, Inc., CN=Starfield Root Certificate Authority - G2
        --- Signature Algorithm: sha256WithRSAEncryption
+```
+
+`keuka --issuer --validity -- www.ieee.org`
+
+```
+--- Subject: C=US,ST=New Jersey,L=Piscataway,O=Institute of Electrical and Electronics Engineers, Inc.,OU=IT,CN=www.ieee.org
+--- Issuer: C=US, O=Symantec Corporation, OU=Symantec Trust Network, CN=Symantec Class 3 Secure Server CA - G4
+--- Validity:
+    --- Not Before: Jul 17 00:00:00 2017 GMT
+    --- Not After: Oct 16 23:59:59 2018 GMT
 ```
