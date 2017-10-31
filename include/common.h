@@ -23,9 +23,11 @@
 #include <linux/limits.h>
 #endif
 
+#define KEUKA_VERSION "1.0.1"
+
 #define _GNU_SOURCE
+#define NULL_DEVICE "/dev/null"
 #define NOT_FOUND -1
 #define NULL_BYTE 1
-#define NULL_DEVICE "/dev/null"
 
 #endif /* KEUKA_COMMON_H */

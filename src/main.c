@@ -46,6 +46,9 @@ int main (int argc, char **argv) {
 	 * --raw, -r: Show raw certificate contents.
 	 * --serial, -S: Show certificate serial number.
 	 * --signature-algorithm, -A: Show signature algorithm.
+	 * --validity, -V: Show certificate Not Before/Not After validity range.
+	 * --help, -h: Show help information and usage examples.
+	 * --version, -v: Show version information.
 	 */
 
 	/**
@@ -59,6 +62,20 @@ int main (int argc, char **argv) {
 	serial = 0;
 	sig_algo = 0;
 	validity = 0;
+
+	if (in_array("--help", argv, argc) ||
+	    in_array("-h", argv, argc)) {
+
+		usage();
+		exit(EXIT_SUCCESS);
+	}
+
+	if (in_array("--version", argv, argc) ||
+	    in_array("-v", argv, argc)) {
+
+		fprintf(stdout, "%s\n", KEUKA_VERSION);
+		exit(EXIT_SUCCESS);
+	}
 
 	/**
 	 * If no arguments were given,
