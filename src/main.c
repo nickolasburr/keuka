@@ -17,7 +17,7 @@
 int main (int argc, char **argv) {
 	size_t crt_index, sig_bytes;
 	int opt_index, arg_index, last_index, sig_type_err;
-	int chain, cipher, issuer, meth, serial, server, raw, sig_algo, validity;
+	int bits, chain, cipher, issuer, meth, serial, server, raw, sig_algo, validity;
 	const char *hostname;
 	char port[MAX_PORT_LENGTH],
 	     scheme[MAX_SCHEME_LENGTH],
@@ -30,6 +30,7 @@ int main (int argc, char **argv) {
 	BIO *bp;
 	X509 *crt, *tcrt;
 	X509_NAME *crtname, *tcrtname;
+	EVP_PKEY *pubkey, *tpubkey;
 	SSL_CTX *ctx;
 	SSL *ssl;
 
@@ -39,6 +40,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Options:
 	 *
+	 * --bits, -b: Show public key length, in bits.
 	 * --chain, -c: Show entire peer certificate chain.
 	 * --cipher, -C: Show cipher used for exchange.
 	 * --issuer, -i: Show certificate issuer information.
@@ -54,6 +56,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Initialize defaults.
 	 */
+	bits = 0;
 	chain = 0;
 	cipher = 0;
 	issuer = 0;
@@ -67,6 +70,7 @@ int main (int argc, char **argv) {
 	    in_array("-h", argv, argc)) {
 
 		usage();
+
 		exit(EXIT_SUCCESS);
 	}
 
@@ -74,6 +78,7 @@ int main (int argc, char **argv) {
 	    in_array("-v", argv, argc)) {
 
 		fprintf(stdout, "%s\n", KEUKA_VERSION);
+
 		exit(EXIT_SUCCESS);
 	}
 
@@ -100,6 +105,16 @@ int main (int argc, char **argv) {
 	 * The last element in argv should be the peer hostname.
 	 */
 	hostname = argv[last_index];
+
+	/**
+	 * If --bits option was given, output
+	 * public key length, in bits.
+	 */
+	if (in_array("--bits", argv, argc) ||
+	    in_array("-b", argv, argc)) {
+
+		bits = 1;
+	}
 
 	/**
 	 * If --chain option was given, output
@@ -314,6 +329,7 @@ int main (int argc, char **argv) {
 		for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
 			tcrt = sk_X509_value(fullchain, crt_index);
 			tcrtname = X509_get_subject_name(tcrt);
+			tpubkey = X509_get_pubkey(tcrt);
 
 			/**
 			 * Output certificate chain.
@@ -329,6 +345,11 @@ int main (int argc, char **argv) {
 				BIO_printf(bp, "\n");
 				BIO_printf(bp, "%7s%s", "", "--- Issuer: ");
 				X509_NAME_print_ex(bp, X509_get_issuer_name(tcrt), 0, XN_FLAG_SEP_CPLUS_SPC);
+			}
+
+			if (bits) {
+				BIO_printf(bp, "\n");
+				BIO_printf(bp, "%7s%s%d", "", "--- Bits: ", EVP_PKEY_bits(tpubkey));
 			}
 
 			/**
@@ -353,6 +374,7 @@ int main (int argc, char **argv) {
 				sig_type_err = i2a_ASN1_OBJECT(bp, sig_type->algorithm);
 
 				if (is_error(sig_type_err, -1) || is_error(sig_type_err, 0)) {
+					BIO_printf(bp, "\n");
 					BIO_printf(bp, "Error: Could not get signature algorithm.\n");
 				}
 			}
@@ -379,6 +401,8 @@ int main (int argc, char **argv) {
 		 */
 		if (raw) {
 			BIO_printf(bp, "\n");
+			PEM_write_bio_PUBKEY(bp, tpubkey);
+			BIO_printf(bp, "\n");
 
 			for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
 				PEM_write_bio_X509(bp, sk_X509_value(fullchain, crt_index));
@@ -395,10 +419,8 @@ int main (int argc, char **argv) {
 			goto on_error;
 		}
 
-		/**
-		 * Get certificate subject.
-		 */
 		crtname = X509_get_subject_name(crt);
+		pubkey = X509_get_pubkey(crt);
 
 		/**
 		 * Output certificate subject.
@@ -414,6 +436,10 @@ int main (int argc, char **argv) {
 			BIO_printf(bp, "--- Issuer: ");
 			X509_NAME_print_ex(bp, X509_get_issuer_name(crt), 0, XN_FLAG_SEP_CPLUS_SPC);
 			BIO_printf(bp, "\n");
+		}
+
+		if (bits) {
+			BIO_printf(bp, "%s%d\n", "--- Bits: ", EVP_PKEY_bits(pubkey));
 		}
 
 		/**
@@ -461,13 +487,14 @@ int main (int argc, char **argv) {
 		 */
 		if (raw) {
 			BIO_printf(bp, "\n");
+			PEM_write_bio_PUBKEY(bp, pubkey);
+			BIO_printf(bp, "\n");
 			PEM_write_bio_X509(bp, crt);
+			BIO_printf(bp, "\n");
 		}
 	}
 
-	/**
-	 * Run cleanup tasks.
-	 */
+	EVP_PKEY_free(pubkey);
 	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
@@ -480,6 +507,8 @@ int main (int argc, char **argv) {
 on_error:
 	BIO_printf(bp, "\n");
 	ERR_print_errors(bp);
+
+	EVP_PKEY_free(pubkey);
 	BIO_free(bp);
 	SSL_free(ssl);
 	close(server);
