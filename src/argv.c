@@ -31,6 +31,12 @@ static method_t methods[] = {
 
 static option_t options[] = {
 	{
+		"Bits",
+		"--bits",
+		"-b",
+		"Show public key length, in bits.",
+	},
+	{
 		"Chain",
 		"--chain",
 		"-c",
