@@ -118,11 +118,19 @@ int get_bitmask_from_key (char *key) {
  */
 void usage (void) {
 	int index;
+	char fvalue[36];
 
 	fprintf(stdout, "Options:\n\n");
 
 	for (index = 0; index < NUM_OPTIONS; index += 1) {
 		option_t *option = &options[index];
-		fprintf(stdout, "%4s%s, %s: %s\n", "", option->value, option->alias, option->desc);
+
+		/**
+		 * Format option->value string.
+		 */
+		copy(fvalue, option->value);
+		concat(fvalue, ",");
+
+		fprintf(stdout, "%4s%-22s %s: %24s\n", "", fvalue, option->alias, option->desc);
 	}
 }
