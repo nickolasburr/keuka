@@ -12,12 +12,13 @@
 #include "utils.h"
 
 #define MAX_HOSTNAME_LENGTH 256
-#define MAX_PORT_LENGTH     6
-#define MAX_SCHEME_LENGTH   6
-#define MAX_URL_LENGTH      268
+#define MAX_PORT_LENGTH 6
+#define MAX_SCHEME_LENGTH 6
+#define MAX_URL_LENGTH 268
 
-#define NUM_OPTS 5
-#define OPT_INVALID -1
+#define NUM_METHODS 5
+#define NUM_OPTIONS 10
+
 #define OPT_SSLV2 1
 #define OPT_SSLV3 2
 #define OPT_TLSV1 4
@@ -27,12 +28,19 @@
 typedef struct {
 	char *key;
 	int value;
+} method_t;
+
+typedef struct {
+	char *name;
+	char *value;
+	char *alias;
+	char *desc;
 } option_t;
 
-static option_t options[NUM_OPTS];
-
-#define NUM_OPT_KEYS (sizeof(options) / sizeof(option_t))
+static method_t methods[NUM_METHODS];
+static option_t options[NUM_OPTIONS];
 
 int get_bitmask_from_key(char *);
+void usage(void);
 
 #endif /* KEUKA_ARGV_H */
