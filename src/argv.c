@@ -115,6 +115,7 @@ void usage (void) {
 	int index;
 	char fvalue[36];
 
+	fprintf(stdout, "Usage: keuka [OPTIONS] [--] hostname\n\n");
 	fprintf(stdout, "Options:\n\n");
 
 	for (index = 0; index < NUM_OPTIONS; index += 1) {
