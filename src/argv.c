@@ -31,67 +31,56 @@ static method_t methods[] = {
 
 static option_t options[] = {
 	{
-		"Bits",
 		"--bits",
 		"-b",
 		"Show public key length, in bits.",
 	},
 	{
-		"Chain",
 		"--chain",
 		"-c",
 		"Show peer certificate chain.",
 	},
 	{
-		"Cipher",
 		"--cipher",
 		"-C",
 		"Show cipher negotiated during handshake.",
 	},
 	{
-		"Issuer",
 		"--issuer",
 		"-i",
 		"Show certificate issuer information."
 	},
 	{
-		"Method",
 		"--method",
 		"-m",
 		"Show method negotiated during handshake.",
 	},
 	{
-		"Raw",
 		"--raw",
 		"-r",
 		"Show raw certificate contents.",
 	},
 	{
-		"Serial",
 		"--serial",
 		"-S",
 		"Show certificate serial number.",
 	},
 	{
-		"Signature Algorithm",
 		"--signature-algorithm",
 		"-A",
 		"Show certificate signature algorithm.",
 	},
 	{
-		"Validity",
 		"--validity",
 		"-V",
 		"Show certificate Not Before/Not After validity range."
 	},
 	{
-		"Help",
 		"--help",
 		"-h",
 		"Show help information and usage examples.",
 	},
 	{
-		"Version",
 		"--version",
 		"-v",
 		"Show version information.",

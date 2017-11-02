@@ -31,7 +31,6 @@ typedef struct {
 } method_t;
 
 typedef struct {
-	char *name;
 	char *value;
 	char *alias;
 	char *desc;
