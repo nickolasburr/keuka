@@ -58,7 +58,7 @@ int mksock (char *url, BIO *bp) {
 	host = gethostbyname(hostname);
 
 	/**
-	 * Create TCP socket.
+	 * Set TCP socket.
 	 */
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -73,11 +73,7 @@ int mksock (char *url, BIO *bp) {
 	tmp_ptr = inet_ntoa(dest_addr.sin_addr);
 
 	/**
-	 * @todo: Refactor for error handling. As it stands,
-	 *        if a bad hostname is given, the resolver
-	 *        complains and connect goes awry, leading
-	 *        to undefined behavior, and never reaching
-	 *        the inside of the if block we have below.
+	 * Return error if we're not able to connect.
 	 */
 	if (is_error(connect(sockfd, (struct sockaddr *) &dest_addr, sizeof(struct sockaddr)), -1)) {
 		BIO_printf(bp, "Error: Cannot connect to host %s [%s] on port %d.\n", hostname, tmp_ptr, port);

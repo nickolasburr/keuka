@@ -241,7 +241,7 @@ int main (int argc, char **argv) {
 	SSL_library_init();
 
 	/**
-	 * Initialize BIO stream pointer.
+	 * Initialize new BIO.
 	 */
 	bp = BIO_new_fp(stdout, BIO_NOCLOSE);
 
@@ -261,8 +261,6 @@ int main (int argc, char **argv) {
 
 	/**
 	 * Make TCP socket connection.
-	 *
-	 * @todo: Add check, throw exception on failure.
 	 */
 	server = mksock(url, bp);
 
@@ -393,7 +391,7 @@ int main (int argc, char **argv) {
 				ASN1_TIME_print(bp, X509_get_notAfter(tcrt));
 			}
 
-			BIO_printf(bp, "\n");
+			BIO_printf(bp, "\n\n");
 		}
 
 		/**
