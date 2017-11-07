@@ -56,6 +56,11 @@ static option_t options[] = {
 		"Show method negotiated during handshake.",
 	},
 	{
+		"--quiet",
+		"-q",
+		"Suppress progress-related output.",
+	},
+	{
 		"--raw",
 		"-r",
 		"Show raw certificate contents.",
@@ -69,6 +74,11 @@ static option_t options[] = {
 		"--signature-algorithm",
 		"-A",
 		"Show certificate signature algorithm.",
+	},
+	{
+		"--subject",
+		"-s",
+		"Show certificate subject.",
 	},
 	{
 		"--validity",
