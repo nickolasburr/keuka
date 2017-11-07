@@ -17,10 +17,11 @@
 int main (int argc, char **argv) {
 	size_t crt_index, sig_bytes;
 	int opt_index, arg_index, last_index, sig_type_err;
-	int bits, chain, cipher, issuer, meth, serial, server, raw, sig_algo, validity;
+	int bits, chain, cipher, issuer, meth, padding, serial;
+	int server, raw, sig_algo, quiet, subject, validity;
 	const char *hostname;
+	const char *protocol = "https";
 	char port[MAX_PORT_LENGTH],
-	     scheme[MAX_SCHEME_LENGTH],
 	     url[MAX_URL_LENGTH];
 	const SSL_METHOD *method;
 	ASN1_INTEGER *asn1_serial;
@@ -45,9 +46,11 @@ int main (int argc, char **argv) {
 	 * --cipher, -C: Show cipher used for exchange.
 	 * --issuer, -i: Show certificate issuer information.
 	 * --method, -m: Show method version for exchange.
+	 * --quiet, -q: Suppress progress-related output.
 	 * --raw, -r: Show raw certificate contents.
 	 * --serial, -S: Show certificate serial number.
 	 * --signature-algorithm, -A: Show signature algorithm.
+	 * --subject, -s: Show certificate subject.
 	 * --validity, -V: Show certificate Not Before/Not After validity range.
 	 * --help, -h: Show help information and usage examples.
 	 * --version, -v: Show version information.
@@ -61,9 +64,11 @@ int main (int argc, char **argv) {
 	cipher = 0;
 	issuer = 0;
 	meth = 0;
+	quiet = 0;
 	raw = 0;
 	serial = 0;
 	sig_algo = 0;
+	subject = 0;
 	validity = 0;
 
 	if (in_array("--help", argv, argc) ||
@@ -157,6 +162,16 @@ int main (int argc, char **argv) {
 	}
 
 	/**
+	 * If --quiet option was given,
+	 * suppress progress-related output.
+	 */
+	if (in_array("--quiet", argv, argc) ||
+	    in_array("-q", argv, argc)) {
+
+		quiet = 1;
+	}
+
+	/**
 	 * If --raw option was given, output
 	 * raw certificate contents to stdout.
 	 */
@@ -187,6 +202,16 @@ int main (int argc, char **argv) {
 	}
 
 	/**
+	 * If --subject option was given, output
+	 * the certificate(s) subject information.
+	 */
+	if (in_array("--subject", argv, argc) ||
+	    in_array("-s", argv, argc)) {
+
+		subject = 1;
+	}
+
+	/**
 	 * If --validity option was given, output
 	 * Not Before/Not After validity time range.
 	 */
@@ -197,33 +222,9 @@ int main (int argc, char **argv) {
 	}
 
 	/**
-	 * Check if --scheme option was given.
-	 * If not, set default scheme to https.
-	 *
-	 * @note: Might get rid of this or implement differently.
-	 */
-	if (in_array("--scheme", argv, argc) ||
-	    in_array("-s", argv, argc)) {
-
-		opt_index = (index_of("--scheme", argv, argc) != NOT_FOUND)
-		          ? index_of("--scheme", argv, argc)
-		          : index_of("-s", argv, argc);
-
-		if ((arg_index = (opt_index + 1)) > last_index) {
-			fprintf(stderr, "--scheme: Missing argument\n");
-
-			exit(EXIT_FAILURE);
-		}
-
-		copy(scheme, argv[arg_index]);
-	} else {
-		copy(scheme, "https");
-	}
-
-	/**
 	 * Assemble URL for request.
 	 */
-	copy(url, scheme);
+	copy(url, protocol);
 	concat(url, "://");
 	concat(url, hostname);
 
@@ -250,13 +251,21 @@ int main (int argc, char **argv) {
 	 */
 	method = SSLv23_client_method();
 
+	if (!quiet) {
+		BIO_printf(bp, "%s Establishing SSL context.\n", KEUKA_OUT_ARROW);
+	}
+
 	/**
 	 * Establish new SSL context.
 	 */
 	if (is_null(ctx = SSL_CTX_new(method))) {
-		BIO_printf(bp, "Unable to establish new SSL context structure.\n");
+		BIO_printf(bp, "%s Unable to establish SSL context.\n", KEUKA_IN_ARROW);
 
 		goto on_error;
+	}
+
+	if (!quiet) {
+		BIO_printf(bp, "%s SSL context established.\n", KEUKA_IN_ARROW);
 	}
 
 	/**
@@ -264,10 +273,21 @@ int main (int argc, char **argv) {
 	 */
 	server = mksock(url, bp);
 
+	if (!quiet) {
+		BIO_printf(bp, "%s Initiating connection to %s.\n", KEUKA_OUT_ARROW, hostname);
+	}
+
+	/**
+	 * Exit if there was an issue establishing a connection.
+	 */
 	if (is_error(server, -1)) {
-		fprintf(stderr, "Please specify a valid hostname.\n");
+		BIO_printf(bp, "%s Unable to resolve %s.\n", KEUKA_IN_ARROW, hostname);
 
 		exit(EXIT_FAILURE);
+	}
+
+	if (!quiet) {
+		BIO_printf(bp, "%s Connection to %s established.\n", KEUKA_IN_ARROW, hostname);
 	}
 
 	/**
@@ -276,30 +296,36 @@ int main (int argc, char **argv) {
 	ssl = SSL_new(ctx);
 	SSL_set_connect_state(ssl);
 
-	/**
-	 * If --method option was given, output
-	 * version of method used for handshake.
-	 */
-	if (meth) {
-		BIO_printf(bp, "--- Method: %s\n", SSL_get_version(ssl));
+	if (!quiet) {
+		BIO_printf(bp, "%s Attaching SSL session to socket.\n", KEUKA_OUT_ARROW);
 	}
 
 	/**
-	 * Attach the SSL session to the socket.
+	 * Attach the SSL session to the TCP socket.
 	 */
 	if (is_error(SSL_set_fd(ssl, server), -1)) {
-		BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
+		BIO_printf(bp, "%s Unable to attach SSL session to socket.\n", KEUKA_IN_ARROW);
 
 		goto on_error;
+	}
+
+	if (!quiet) {
+		BIO_printf(bp, "%s SSL session attached to socket.\n", KEUKA_IN_ARROW);
+		BIO_printf(bp, "%s Initiating handshake with %s.\n", KEUKA_OUT_ARROW, hostname);
 	}
 
 	/**
 	 * Bridge the connection.
 	 */
 	if (SSL_connect(ssl) != 1) {
-		BIO_printf(bp, "Error: Could not build an SSL session to %s.\n", url);
+		BIO_printf(bp, "%s Could not build an SSL session to %s. Handshake aborted.\n", KEUKA_IN_ARROW, url);
 
 		goto on_error;
+	}
+
+	if (!quiet) {
+		BIO_printf(bp, "%s Handshake with %s completed.\n", KEUKA_IN_ARROW, hostname);
+		BIO_printf(bp, "\n");
 	}
 
 	/**
@@ -307,6 +333,14 @@ int main (int argc, char **argv) {
 	 */
 	if (cipher) {
 		BIO_printf(bp, "--- Cipher: %s\n", SSL_CIPHER_get_name(SSL_get_current_cipher(ssl)));
+	}
+
+	/**
+	 * If --method option was given, output
+	 * version of method used for handshake.
+	 */
+	if (meth) {
+		BIO_printf(bp, "--- Method: %s\n", SSL_get_version(ssl));
 	}
 
 	/**
@@ -324,38 +358,61 @@ int main (int argc, char **argv) {
 
 		BIO_printf(bp, "--- Certificate Chain:\n");
 
+		/**
+		 * Output certificate chain.
+		 */
 		for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
+			padding = 0;
 			tcrt = sk_X509_value(fullchain, crt_index);
 			tcrtname = X509_get_subject_name(tcrt);
 			tpubkey = X509_get_pubkey(tcrt);
 
-			/**
-			 * Output certificate chain.
-			 */
 			BIO_printf(bp, "%5d: ", (int) crt_index);
-			BIO_printf(bp, "--- Subject: ");
-			X509_NAME_print_ex(bp, tcrtname, 0, XN_FLAG_SEP_CPLUS_SPC);
+
+			/**
+			 * If --subject option was given, output certificate subject information.
+			 */
+			if (subject) {
+				BIO_printf(bp, "--- Subject: ");
+				X509_NAME_print_ex(bp, tcrtname, 0, XN_FLAG_SEP_CPLUS_SPC);
+				padding = 1;
+			}
 
 			/**
 			 * If --issuer option was given, output certificate issuer information.
 			 */
 			if (issuer) {
-				BIO_printf(bp, "\n");
-				BIO_printf(bp, "%7s%s", "", "--- Issuer: ");
+				if (padding) {
+					BIO_printf(bp, "%s%7s", "\n", "");
+				} else {
+					padding = 1;
+				}
+
+				BIO_printf(bp, "--- Issuer: ");
 				X509_NAME_print_ex(bp, X509_get_issuer_name(tcrt), 0, XN_FLAG_SEP_CPLUS_SPC);
 			}
 
 			if (bits) {
-				BIO_printf(bp, "\n");
-				BIO_printf(bp, "%7s%s%d", "", "--- Bits: ", EVP_PKEY_bits(tpubkey));
+				if (padding) {
+					BIO_printf(bp, "%s%7s", "\n", "");
+				} else {
+					padding = 1;
+				}
+
+				BIO_printf(bp, "--- Bits: %d", EVP_PKEY_bits(tpubkey));
 			}
 
 			/**
 			 * If --serial option was given, output ASN1 serial.
 			 */
 			if (serial) {
-				BIO_printf(bp, "\n");
-				BIO_printf(bp, "%7s%s", "", "--- Serial: ");
+				if (padding) {
+					BIO_printf(bp, "%s%7s", "\n", "");
+				} else {
+					padding = 1;
+				}
+
+				BIO_printf(bp, "--- Serial: ");
 				i2a_ASN1_INTEGER(bp, X509_get_serialNumber(tcrt));
 			}
 
@@ -364,16 +421,20 @@ int main (int argc, char **argv) {
 			 * output signature algorithm for certificate(s).
 			 */
 			if (sig_algo) {
+				if (padding) {
+					BIO_printf(bp, "%s%7s", "\n", "");
+				} else {
+					padding = 1;
+				}
+
 				sig_type = tcrt->sig_alg;
 				asn1_sig = tcrt->signature;
 
-				BIO_printf(bp, "\n");
-				BIO_printf(bp, "%7s%s", "", "--- Signature Algorithm: ");
+				BIO_printf(bp, "--- Signature Algorithm: ");
 				sig_type_err = i2a_ASN1_OBJECT(bp, sig_type->algorithm);
 
 				if (is_error(sig_type_err, -1) || is_error(sig_type_err, 0)) {
-					BIO_printf(bp, "\n");
-					BIO_printf(bp, "Error: Could not get signature algorithm.\n");
+					BIO_printf(bp, "Could not get signature algorithm.");
 				}
 			}
 
@@ -382,8 +443,13 @@ int main (int argc, char **argv) {
 			 * range of Not Before/Not After timestamps.
 			 */
 			if (validity) {
-				BIO_printf(bp, "\n");
-				BIO_printf(bp, "%7s%s", "", "--- Validity:\n");
+				if (padding) {
+					BIO_printf(bp, "%s%7s", "\n", "");
+				} else {
+					padding = 1;
+				}
+
+				BIO_printf(bp, "--- Validity:\n");
 				BIO_printf(bp, "%11s%s", "", "--- Not Before: ");
 				ASN1_TIME_print(bp, X509_get_notBefore(tcrt));
 				BIO_printf(bp, "\n");
@@ -391,7 +457,11 @@ int main (int argc, char **argv) {
 				ASN1_TIME_print(bp, X509_get_notAfter(tcrt));
 			}
 
-			BIO_printf(bp, "\n\n");
+			if (!padding) {
+				BIO_printf(bp, "[redacted]");
+			}
+
+			BIO_printf(bp, "\n");
 		}
 
 		/**
@@ -421,11 +491,13 @@ int main (int argc, char **argv) {
 		pubkey = X509_get_pubkey(crt);
 
 		/**
-		 * Output certificate subject.
+		 * If --subject option was given, output certificate subject information.
 		 */
-		BIO_printf(bp, "--- Subject: ");
-		X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
-		BIO_printf(bp, "\n");
+		if (subject) {
+			BIO_printf(bp, "--- Subject: ");
+			X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
+			BIO_printf(bp, "\n");
+		}
 
 		/**
 		 * If --issuer option was given, output certificate issuer information.
