@@ -40,7 +40,7 @@ int mksock (char *url, BIO *bp) {
 	 */
 	if (strchr(hostname, ':')) {
 		tmp_ptr = strchr(hostname, ':');
-		strncpy(port_num, tmp_ptr + 1,  sizeof(port_num));
+		strncpy(port_num, tmp_ptr + NULL_BYTE,  sizeof(port_num));
 		*tmp_ptr = '\0';
 	}
 
@@ -50,9 +50,7 @@ int mksock (char *url, BIO *bp) {
 	 * Verify the hostname is resolvable.
 	 */
 	if (is_null(gethostbyname(hostname))) {
-		BIO_printf(bp, "Error: Cannot resolve hostname %s.\n", hostname);
-
-		exit(EXIT_FAILURE);
+		return -1;
 	}
 
 	host = gethostbyname(hostname);
