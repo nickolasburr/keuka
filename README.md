@@ -30,7 +30,7 @@ make install
 + `--issuer`, `-i`: Show certificate issuer information.
 + `--method`, `-m`: Show method negotiated during handshake.
 + `--quiet`, `-q`: Suppress progress-related output.
-+ `--raw`, `-r`: Output raw certificate contents.
++ `--raw`, `-r`: Output raw key and certificate contents.
 + `--serial`, `-S`: Show certificate serial number.
 + `--signature-algorithm`, `-A`: Show certificate signature algorithm.
 + `--subject`, `-s`: Show certificate subject.
@@ -55,7 +55,7 @@ Get handshake information.
 <-- [0.004188] Handshake complete.
 ```
 
-Get cipher and certificate chain<sup>[1](#chain)</sup>
+Get cipher and certificate chain<sup>[1](#chain)</sup>.
 
 `keuka --chain --cipher -- amazon.com`
 
@@ -73,6 +73,14 @@ Get cipher and certificate chain<sup>[1](#chain)</sup>
 --- Certificate Chain:
     0: [redacted]
     1: [redacted]
+```
+
+Get cipher, format for use in a shell script.
+
+`keuka -q -C amazon.com | cut -d' ' -f3`
+
+```
+ECDHE-RSA-AES128-GCM-SHA256
 ```
 
 Get certificate chain, certificate issuer, and handshake method (e.g. `TLSv1.2`).
@@ -186,6 +194,14 @@ Get certificate issuer, certificate subject, certificate validity range, and sup
 --- Validity:
     --- Not Before: Jul 17 00:00:00 2017 GMT
     --- Not After: Oct 16 23:59:59 2018 GMT
+```
+
+Get certificate expiration date.
+
+`keuka -q -V www.ietf.org | tail -n +3 | sed 's/   --- Not After: //g'`
+
+```
+Aug 11 23:12:50 2018 GMT
 ```
 
 Get key length, certificate chain, cipher, certificate issuer, handshake method, serial number, certificate signature algorithm, certificate validity range, and raw key and certificate contents.
