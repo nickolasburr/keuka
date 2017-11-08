@@ -29,48 +29,100 @@ make install
 + `--cipher`, `-C`: Show cipher negotiated during handshake.
 + `--issuer`, `-i`: Show certificate issuer information.
 + `--method`, `-m`: Show method negotiated during handshake.
++ `--quiet`, `-q`: Suppress progress-related output.
 + `--raw`, `-r`: Output raw certificate contents.
 + `--serial`, `-S`: Show certificate serial number.
 + `--signature-algorithm`, `-A`: Show certificate signature algorithm.
++ `--subject`, `-s`: Show certificate subject.
 + `--validity`, `-V`: Show Not Before/Not After validity time range.
++ `--help`, `-h`: Show help information and usage examples.
++ `--version`, `-v`: Show version information.
 
 ## Examples
+
+Get handshake information.
 
 `keuka www.openssl.org`
 
 ```
---- Subject: OU=Domain Control Validated,CN=*.openssl.org
+--- [0.000052] Establishing SSL context.
+--- [0.000721] SSL context established.
+--> [0.002033] Establishing connection to www.openssl.org.
+<-- [0.002056] Connection established.
+--> [0.002161] Attaching SSL session to socket.
+<-- [0.002176] SSL session attached to socket.
+--> [0.002176] Initiating handshake with www.openssl.org.
+<-- [0.004188] Handshake complete.
 ```
+
+Get cipher and certificate chain<sup>[1](#chain)</sup>
 
 `keuka --chain --cipher -- amazon.com`
 
 ```
+--- [0.000018] Establishing SSL context.
+--- [0.000494] SSL context established.
+--> [0.001827] Establishing connection to amazon.com.
+<-- [0.001866] Connection established.
+--> [0.001985] Attaching SSL session to socket.
+<-- [0.002024] SSL session attached to socket.
+--> [0.002024] Initiating handshake with amazon.com.
+<-- [0.004389] Handshake complete.
+
 --- Cipher: ECDHE-RSA-AES128-GCM-SHA256
 --- Certificate Chain:
-    0: --- Subject: C=US, ST=Washington, L=Seattle, O=Amazon.com, Inc., CN=www.amazon.com
-    1: --- Subject: C=US, O=Symantec Corporation, OU=Symantec Trust Network, CN=Symantec Class 3 Secure Server CA - G4
+    0: [redacted]
+    1: [redacted]
 ```
+
+Get certificate chain, certificate issuer, and handshake method (e.g. `TLSv1.2`).
 
 `keuka --chain --issuer --method -- google.com`
 
 ```
+--- [0.000012] Establishing SSL context.
+--- [0.000348] SSL context established.
+--> [0.001267] Establishing connection to google.com.
+<-- [0.001283] Connection established.
+--> [0.001337] Attaching SSL session to socket.
+<-- [0.001355] SSL session attached to socket.
+--> [0.001355] Initiating handshake with google.com.
+<-- [0.003434] Handshake complete.
+
 --- Method: TLSv1.2
 --- Certificate Chain:
-    0: --- Subject: C=US, ST=California, L=Mountain View, O=Google Inc, CN=*.google.com
-       --- Issuer: C=US, O=Google Inc, CN=Google Internet Authority G2
-    1: --- Subject: C=US, O=Google Inc, CN=Google Internet Authority G2
-       --- Issuer: C=US, O=GeoTrust Inc., CN=GeoTrust Global CA
-    2: --- Subject: C=US, O=GeoTrust Inc., CN=GeoTrust Global CA
-       --- Issuer: C=US, O=Equifax, OU=Equifax Secure Certificate Authority
+    0: --- Issuer: C=US, O=Google Inc, CN=Google Internet Authority G2
+    1: --- Issuer: C=US, O=GeoTrust Inc., CN=GeoTrust Global CA
+    2: --- Issuer: C=US, O=Equifax, OU=Equifax Secure Certificate Authority
 ```
+
+Get cipher, certificate issuer, handshake method, and raw key and certificate contents.
 
 `keuka --cipher --issuer --method --raw -- www.openssl.org`
 
 ```
---- Method: TLSv1.2
+--- [0.000013] Establishing SSL context.
+--- [0.000348] SSL context established.
+--> [0.001546] Establishing connection to www.openssl.org.
+<-- [0.001572] Connection established.
+--> [0.001681] Attaching SSL session to socket.
+<-- [0.001706] SSL session attached to socket.
+--> [0.001706] Initiating handshake with www.openssl.org.
+<-- [0.003721] Handshake complete.
+
 --- Cipher: ECDHE-RSA-AES256-GCM-SHA384
---- Subject: CN=www.openssl.org
+--- Method: TLSv1.2
 --- Issuer: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
+
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp2M+PqoZrXUziuc80mU+
+JeVEC2lZzuiEjHH8nF3oxijY8ZhUiODj69JDQp0q97iOgb7VebRm1UQV3totWwlU
+8gRbvIekeiw70YsPE0y0WB0/eN8cPHgg7ngjJ+6hZQvqIHDlh3Q9OG3kCtrPcddD
+BKN8ci2SgKOxMDIlvmeN1Bv72JUOPRGLyq7pHsCKtx3vqjJZ/RV0v7L72mMaE5H6
+eQwsJJDh7R9RjcudimijJLpr662YHK1qoAYbi9i+dpzVL4dXXGBarpnWN0IgqYQs
+nU7Pf+vA1mCkxXAetIvECOKK97QSxBbwRbkEoEavuHEQNBCuoPzBUsys0C7kJZ8f
+ywIDAQAB
+-----END PUBLIC KEY-----
 
 -----BEGIN CERTIFICATE-----
 MIIFATCCA+mgAwIBAgISA8BGaubNIyZD/Mci4GG+hCCJMA0GCSqGSIb3DQEBCwUA
@@ -103,20 +155,30 @@ JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
 -----END CERTIFICATE-----
 ```
 
+Get certificate chain, handshake method, and certificate signature algorithm.
+
 `keuka --chain --method --signature-algorithm -- www.ietf.org`
 
 ```
+--- [0.000049] Establishing SSL context.
+--- [0.000720] SSL context established.
+--> [0.001958] Establishing connection to www.ietf.org.
+<-- [0.001980] Connection established.
+--> [0.002087] Attaching SSL session to socket.
+<-- [0.002111] SSL session attached to socket.
+--> [0.002111] Initiating handshake with www.ietf.org.
+<-- [0.004333] Handshake complete.
+
 --- Method: TLSv1.2
 --- Certificate Chain:
-    0: --- Subject: OU=Domain Control Validated, CN=*.ietf.org
-       --- Signature Algorithm: sha256WithRSAEncryption
-    1: --- Subject: C=US, ST=Arizona, L=Scottsdale, O=Starfield Technologies, Inc., OU=http://certs.starfieldtech.com/repository/, CN=Starfield Secure Certificate Authority - G2
-       --- Signature Algorithm: sha256WithRSAEncryption
-    2: --- Subject: C=US, ST=Arizona, L=Scottsdale, O=Starfield Technologies, Inc., CN=Starfield Root Certificate Authority - G2
-       --- Signature Algorithm: sha256WithRSAEncryption
+    0: --- Signature Algorithm: sha256WithRSAEncryption
+    1: --- Signature Algorithm: sha256WithRSAEncryption
+    2: --- Signature Algorithm: sha256WithRSAEncryption
 ```
 
-`keuka --issuer --validity -- www.ieee.org`
+Get certificate issuer, certificate subject, certificate validity range, and suppress progress output.
+
+`keuka --issuer --subject --validity --quiet -- www.ieee.org`
 
 ```
 --- Subject: C=US,ST=New Jersey,L=Piscataway,O=Institute of Electrical and Electronics Engineers, Inc.,OU=IT,CN=www.ieee.org
@@ -126,22 +188,31 @@ JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
     --- Not After: Oct 16 23:59:59 2018 GMT
 ```
 
+Get key length, certificate chain, cipher, certificate issuer, handshake method, serial number, certificate signature algorithm, certificate validity range, and raw key and certificate contents.
+
 `keuka --bits --chain --cipher --issuer --method --serial --signature-algorithm --validity --raw -- www.gnu.org`
 
 ```
---- Method: TLSv1.2
+--- [0.000014] Establishing SSL context.
+--- [0.000403] SSL context established.
+--> [0.001480] Establishing connection to www.gnu.org.
+<-- [0.001507] Connection established.
+--> [0.001596] Attaching SSL session to socket.
+<-- [0.001614] SSL session attached to socket.
+--> [0.001614] Initiating handshake with www.gnu.org.
+<-- [0.003794] Handshake complete.
+
 --- Cipher: ECDHE-RSA-AES128-GCM-SHA256
+--- Method: TLSv1.2
 --- Certificate Chain:
-    0: --- Subject: CN=gnu.org
-       --- Issuer: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
+    0: --- Issuer: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
        --- Bits: 2048
        --- Serial: 04D5DB3D40FAACC68EB0B07188517C0858C1
        --- Signature Algorithm: sha256WithRSAEncryption
        --- Validity:
            --- Not Before: Sep 27 09:01:00 2017 GMT
            --- Not After: Dec 26 09:01:00 2017 GMT
-    1: --- Subject: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
-       --- Issuer: O=Digital Signature Trust Co., CN=DST Root CA X3
+    1: --- Issuer: O=Digital Signature Trust Co., CN=DST Root CA X3
        --- Bits: 2048
        --- Serial: 0A0141420000015385736A0B85ECA708
        --- Signature Algorithm: sha256WithRSAEncryption
@@ -219,3 +290,7 @@ PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6
 KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==
 -----END CERTIFICATE-----
 ```
+
+## Notes
+
+<a name="#chain">1</a>: Specifying `--chain` without complementary options shows `[redacted]` per certificate.
