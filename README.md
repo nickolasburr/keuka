@@ -41,7 +41,7 @@ make install
 
 ## Examples
 
-Get handshake information.
+#### Get handshake information.
 
 `keuka www.openssl.org`
 
