@@ -354,6 +354,9 @@ int main (int argc, char **argv) {
 	ssl = SSL_new(ctx);
 	SSL_set_connect_state(ssl);
 
+	/**
+	 * Disable SNI support if --no-sni was given.
+	 */
 	if (!no_sni) {
 		SSL_set_tlsext_host_name(ssl, hostname);
 	}
