@@ -55,7 +55,7 @@ int main (int argc, char **argv) {
 	 * --issuer, -i: Show certificate issuer information.
 	 * --method, -m: Show method version for exchange.
 	 * --no-sni, -N: Disable SNI support.
-	 * --quiet, -q: Suppress progress-related output.
+	 * --quiet, -q: Suppress timing and progress output.
 	 * --raw, -r: Show raw certificate contents.
 	 * --serial, -S: Show certificate serial number.
 	 * --signature-algorithm, -A: Show signature algorithm.
