@@ -15,9 +15,11 @@
  */
 
 int main (int argc, char **argv) {
+	clock_t start, end, now;
 	size_t crt_index, sig_bytes;
+	double elapsed;
 	int opt_index, arg_index, last_index, sig_type_err;
-	int bits, chain, cipher, issuer, meth, padding, serial;
+	int bits, chain, cipher, issuer, meth, pad_fmt, pad_tfmt, serial;
 	int server, raw, sig_algo, quiet, subject, validity;
 	const char *hostname;
 	const char *protocol = "https";
@@ -36,6 +38,7 @@ int main (int argc, char **argv) {
 	SSL *ssl;
 
 	last_index = (argc - 1);
+	pad_fmt = ((last_index - 1) > 0);
 	server = 0;
 
 	/**
@@ -101,7 +104,7 @@ int main (int argc, char **argv) {
 	 * Limit length of hostname given as an argument.
 	 */
 	if (length(argv[last_index]) > MAX_HOSTNAME_LENGTH) {
-		fprintf(stderr, "Error: Hostname exceeds maximum length\n");
+		fprintf(stderr, "Error: Hostname exceeds maximum length of 256 characters.\n");
 
 		exit(EXIT_FAILURE);
 	}
@@ -169,6 +172,7 @@ int main (int argc, char **argv) {
 	    in_array("-q", argv, argc)) {
 
 		quiet = 1;
+		pad_fmt = 0;
 	}
 
 	/**
@@ -242,6 +246,11 @@ int main (int argc, char **argv) {
 	SSL_library_init();
 
 	/**
+	 * Start execution clock.
+	 */
+	start = clock();
+
+	/**
 	 * Initialize new BIO.
 	 */
 	bp = BIO_new_fp(stdout, BIO_NOCLOSE);
@@ -252,20 +261,36 @@ int main (int argc, char **argv) {
 	method = SSLv23_client_method();
 
 	if (!quiet) {
-		BIO_printf(bp, "%s Establishing SSL context.\n", KEUKA_OUT_ARROW);
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] Establishing SSL context.\n", KEUKA_DASH_ARROW, elapsed);
 	}
 
 	/**
 	 * Establish new SSL context.
 	 */
 	if (is_null(ctx = SSL_CTX_new(method))) {
-		BIO_printf(bp, "%s Unable to establish SSL context.\n", KEUKA_IN_ARROW);
+		/**
+		 * Display error in progress format, unless given --quiet.
+		 */
+		if (!quiet) {
+			now = clock();
+			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+			BIO_printf(bp, "%s [%f] Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+		} else {
+			BIO_printf(bp, "Error: Unable to establish SSL context.\n");
+		}
 
 		goto on_error;
 	}
 
 	if (!quiet) {
-		BIO_printf(bp, "%s SSL context established.\n", KEUKA_IN_ARROW);
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] SSL context established.\n", KEUKA_DASH_ARROW, elapsed);
 	}
 
 	/**
@@ -274,20 +299,36 @@ int main (int argc, char **argv) {
 	server = mksock(url, bp);
 
 	if (!quiet) {
-		BIO_printf(bp, "%s Initiating connection to %s.\n", KEUKA_OUT_ARROW, hostname);
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] Establishing connection to %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
 	}
 
 	/**
 	 * Exit if there was an issue establishing a connection.
 	 */
 	if (is_error(server, -1)) {
-		BIO_printf(bp, "%s Unable to resolve %s.\n", KEUKA_IN_ARROW, hostname);
+		/**
+		 * Display error in progress format, unless given --quiet.
+		 */
+		if (!quiet) {
+			now = clock();
+			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+			BIO_printf(bp, "%s [%f] Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
+		} else {
+			BIO_printf(bp, "Error: Unable to resolve hostname %s.\n", hostname);
+		}
 
 		exit(EXIT_FAILURE);
 	}
 
 	if (!quiet) {
-		BIO_printf(bp, "%s Connection to %s established.\n", KEUKA_IN_ARROW, hostname);
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] Connection established.\n", KEUKA_RECV_ARROW, elapsed);
 	}
 
 	/**
@@ -297,35 +338,67 @@ int main (int argc, char **argv) {
 	SSL_set_connect_state(ssl);
 
 	if (!quiet) {
-		BIO_printf(bp, "%s Attaching SSL session to socket.\n", KEUKA_OUT_ARROW);
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] Attaching SSL session to socket.\n", KEUKA_SEND_ARROW, elapsed);
 	}
 
 	/**
 	 * Attach the SSL session to the TCP socket.
 	 */
 	if (is_error(SSL_set_fd(ssl, server), -1)) {
-		BIO_printf(bp, "%s Unable to attach SSL session to socket.\n", KEUKA_IN_ARROW);
+		/**
+		 * Display error in progress format, unless given --quiet.
+		 */
+		if (!quiet) {
+			now = clock();
+			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+			BIO_printf(bp, "%s [%f] Unable to attach SSL session to socket.\n", KEUKA_RECV_ARROW, elapsed);
+		} else {
+			BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
+		}
 
 		goto on_error;
 	}
 
 	if (!quiet) {
-		BIO_printf(bp, "%s SSL session attached to socket.\n", KEUKA_IN_ARROW);
-		BIO_printf(bp, "%s Initiating handshake with %s.\n", KEUKA_OUT_ARROW, hostname);
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] SSL session attached to socket.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%f] Initiating handshake with %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
 	}
 
 	/**
 	 * Bridge the connection.
 	 */
 	if (SSL_connect(ssl) != 1) {
-		BIO_printf(bp, "%s Could not build an SSL session to %s. Handshake aborted.\n", KEUKA_IN_ARROW, url);
+		/**
+		 * Display error in progress format, unless given --quiet.
+		 */
+		if (!quiet) {
+			now = clock();
+			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+			BIO_printf(bp, "%s [%f] Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
+		} else {
+			BIO_printf(bp, "Error: Could not build SSL session with %s. Handshake aborted.\n", url);
+		}
 
 		goto on_error;
 	}
 
 	if (!quiet) {
-		BIO_printf(bp, "%s Handshake with %s completed.\n", KEUKA_IN_ARROW, hostname);
-		BIO_printf(bp, "\n");
+		now = clock();
+		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
+
+		BIO_printf(bp, "%s [%f] Handshake complete.\n", KEUKA_RECV_ARROW, elapsed);
+
+		if (pad_fmt) {
+			BIO_printf(bp, "\n");
+		}
 	}
 
 	/**
@@ -362,7 +435,7 @@ int main (int argc, char **argv) {
 		 * Output certificate chain.
 		 */
 		for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
-			padding = 0;
+			pad_tfmt = 0;
 			tcrt = sk_X509_value(fullchain, crt_index);
 			tcrtname = X509_get_subject_name(tcrt);
 			tpubkey = X509_get_pubkey(tcrt);
@@ -375,17 +448,17 @@ int main (int argc, char **argv) {
 			if (subject) {
 				BIO_printf(bp, "--- Subject: ");
 				X509_NAME_print_ex(bp, tcrtname, 0, XN_FLAG_SEP_CPLUS_SPC);
-				padding = 1;
+				pad_tfmt = 1;
 			}
 
 			/**
 			 * If --issuer option was given, output certificate issuer information.
 			 */
 			if (issuer) {
-				if (padding) {
+				if (pad_tfmt) {
 					BIO_printf(bp, "%s%7s", "\n", "");
 				} else {
-					padding = 1;
+					pad_tfmt = 1;
 				}
 
 				BIO_printf(bp, "--- Issuer: ");
@@ -393,10 +466,10 @@ int main (int argc, char **argv) {
 			}
 
 			if (bits) {
-				if (padding) {
+				if (pad_tfmt) {
 					BIO_printf(bp, "%s%7s", "\n", "");
 				} else {
-					padding = 1;
+					pad_tfmt = 1;
 				}
 
 				BIO_printf(bp, "--- Bits: %d", EVP_PKEY_bits(tpubkey));
@@ -406,10 +479,10 @@ int main (int argc, char **argv) {
 			 * If --serial option was given, output ASN1 serial.
 			 */
 			if (serial) {
-				if (padding) {
+				if (pad_tfmt) {
 					BIO_printf(bp, "%s%7s", "\n", "");
 				} else {
-					padding = 1;
+					pad_tfmt = 1;
 				}
 
 				BIO_printf(bp, "--- Serial: ");
@@ -421,10 +494,10 @@ int main (int argc, char **argv) {
 			 * output signature algorithm for certificate(s).
 			 */
 			if (sig_algo) {
-				if (padding) {
+				if (pad_tfmt) {
 					BIO_printf(bp, "%s%7s", "\n", "");
 				} else {
-					padding = 1;
+					pad_tfmt = 1;
 				}
 
 				sig_type = tcrt->sig_alg;
@@ -443,10 +516,10 @@ int main (int argc, char **argv) {
 			 * range of Not Before/Not After timestamps.
 			 */
 			if (validity) {
-				if (padding) {
+				if (pad_tfmt) {
 					BIO_printf(bp, "%s%7s", "\n", "");
 				} else {
-					padding = 1;
+					pad_tfmt = 1;
 				}
 
 				BIO_printf(bp, "--- Validity:\n");
@@ -457,7 +530,7 @@ int main (int argc, char **argv) {
 				ASN1_TIME_print(bp, X509_get_notAfter(tcrt));
 			}
 
-			if (!padding) {
+			if (!pad_tfmt) {
 				BIO_printf(bp, "[redacted]");
 			}
 
