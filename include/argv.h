@@ -19,7 +19,7 @@
 #define MAX_URL_LENGTH 268
 
 #define NUM_METHODS 5
-#define NUM_OPTIONS 13
+#define NUM_OPTIONS 14
 
 #define OPT_SSLV2 1
 #define OPT_SSLV3 2

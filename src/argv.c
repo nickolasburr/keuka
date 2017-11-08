@@ -56,6 +56,11 @@ static option_t options[] = {
 		"Show method negotiated during handshake.",
 	},
 	{
+		"--no-sni",
+		"-N",
+		"Disable SNI support.",
+	},
+	{
 		"--quiet",
 		"-q",
 		"Suppress progress-related output.",
