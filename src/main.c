@@ -18,7 +18,7 @@ int main (int argc, char **argv) {
 	clock_t start, end, now;
 	size_t crt_index, sig_bytes;
 	double elapsed;
-	int opt_index, arg_index, last_index, sig_type_err;
+	int opt_index, arg_index, lindex, pindex, sig_type_err;
 	int bits, chain, cipher, issuer, meth, pad_fmt, pad_tfmt, serial;
 	int server, raw, sig_algo, quiet, subject, validity;
 	const char *hostname;
@@ -37,9 +37,14 @@ int main (int argc, char **argv) {
 	SSL_CTX *ctx;
 	SSL *ssl;
 
-	last_index = (argc - 1);
-	pad_fmt = ((last_index - 1) > 0);
 	server = 0;
+	lindex = (argc - 1);
+	pindex = (lindex - 1);
+
+	/**
+	 * Add padding after progress output, if applicable.
+	 */
+	pad_fmt = ((pindex - 1) > 0 && argv[pindex] != OPT_LSEP);
 
 	/**
 	 * Options:
@@ -94,7 +99,7 @@ int main (int argc, char **argv) {
 	 * If no arguments were given,
 	 * complain to stderr and exit.
 	 */
-	if (last_index < 1) {
+	if (lindex < 1) {
 		fprintf(stderr, "Error: Hostname not specified.\n");
 
 		exit(EXIT_FAILURE);
@@ -103,7 +108,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Limit length of hostname given as an argument.
 	 */
-	if (length(argv[last_index]) > MAX_HOSTNAME_LENGTH) {
+	if (length(argv[lindex]) > MAX_HOSTNAME_LENGTH) {
 		fprintf(stderr, "Error: Hostname exceeds maximum length of 256 characters.\n");
 
 		exit(EXIT_FAILURE);
@@ -112,7 +117,7 @@ int main (int argc, char **argv) {
 	/**
 	 * The last element in argv should be the peer hostname.
 	 */
-	hostname = argv[last_index];
+	hostname = argv[lindex];
 
 	/**
 	 * If --bits option was given, output
@@ -264,7 +269,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] Establishing SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Establishing SSL context.\n", KEUKA_DASH_ARROW, elapsed);
 	}
 
 	/**
@@ -278,7 +283,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%f] Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to establish SSL context.\n");
 		}
@@ -290,7 +295,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] SSL context established.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] SSL context established.\n", KEUKA_DASH_ARROW, elapsed);
 	}
 
 	/**
@@ -302,7 +307,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] Establishing connection to %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
+		BIO_printf(bp, "%s [%fs] Establishing connection to %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
 	}
 
 	/**
@@ -316,7 +321,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%f] Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
+			BIO_printf(bp, "%s [%fs] Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
 		} else {
 			BIO_printf(bp, "Error: Unable to resolve hostname %s.\n", hostname);
 		}
@@ -328,7 +333,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] Connection established.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Connection established.\n", KEUKA_RECV_ARROW, elapsed);
 	}
 
 	/**
@@ -341,7 +346,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] Attaching SSL session to socket.\n", KEUKA_SEND_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_SEND_ARROW, elapsed);
 	}
 
 	/**
@@ -355,7 +360,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%f] Unable to attach SSL session to socket.\n", KEUKA_RECV_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Unable to attach SSL session to socket.\n", KEUKA_RECV_ARROW, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
 		}
@@ -367,8 +372,8 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] SSL session attached to socket.\n", KEUKA_RECV_ARROW, elapsed);
-		BIO_printf(bp, "%s [%f] Initiating handshake with %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
+		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Initiating handshake with %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
 	}
 
 	/**
@@ -382,7 +387,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%f] Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
+			BIO_printf(bp, "%s [%fs] Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
 		} else {
 			BIO_printf(bp, "Error: Could not build SSL session with %s. Handshake aborted.\n", url);
 		}
@@ -394,7 +399,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%f] Handshake complete.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Handshake complete.\n", KEUKA_RECV_ARROW, elapsed);
 
 		if (pad_fmt) {
 			BIO_printf(bp, "\n");
@@ -648,9 +653,7 @@ int main (int argc, char **argv) {
 	return EXIT_SUCCESS;
 
 on_error:
-	BIO_printf(bp, "\n");
 	ERR_print_errors(bp);
-
 	EVP_PKEY_free(pubkey);
 	BIO_free(bp);
 	SSL_free(ssl);
