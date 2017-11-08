@@ -142,6 +142,6 @@ void usage (void) {
 		copy(fvalue, option->value);
 		concat(fvalue, ",");
 
-		fprintf(stdout, "%4s%-22s %s: %24s\n", "", fvalue, option->alias, option->desc);
+		fprintf(stdout, "%4s%-22s %s: %-24s\n", "", fvalue, option->alias, option->desc);
 	}
 }
