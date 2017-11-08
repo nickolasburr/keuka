@@ -29,6 +29,7 @@ make install
 + `--cipher`, `-C`: Show cipher negotiated during handshake.
 + `--issuer`, `-i`: Show certificate issuer information.
 + `--method`, `-m`: Show method negotiated during handshake.
++ `--no-sni`, `-N`: Disable SNI support.
 + `--quiet`, `-q`: Suppress progress-related output.
 + `--raw`, `-r`: Output raw key and certificate contents.
 + `--serial`, `-S`: Show certificate serial number.
