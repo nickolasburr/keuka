@@ -11,6 +11,8 @@
 #include "error.h"
 #include "utils.h"
 
+#define OPT_LSEP "--"
+
 #define MAX_HOSTNAME_LENGTH 256
 #define MAX_PORT_LENGTH 6
 #define MAX_SCHEME_LENGTH 6
