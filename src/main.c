@@ -44,7 +44,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Add padding after progress output, if applicable.
 	 */
-	pad_fmt = ((pindex - 1) > 0 && argv[pindex] != OPT_LSEP);
+	pad_fmt = (argc > 2 && argv[pindex] != OPT_LSEP);
 
 	/**
 	 * Options:
