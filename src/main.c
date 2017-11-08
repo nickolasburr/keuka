@@ -19,7 +19,7 @@ int main (int argc, char **argv) {
 	size_t crt_index, sig_bytes;
 	double elapsed;
 	int opt_index, arg_index, lindex, pindex, sig_type_err;
-	int bits, chain, cipher, issuer, meth, pad_fmt, pad_tfmt, serial;
+	int bits, chain, cipher, issuer, meth, no_sni, pad_fmt, pad_tfmt, serial;
 	int server, raw, sig_algo, quiet, subject, validity;
 	const char *hostname;
 	const char *protocol = "https";
@@ -54,6 +54,7 @@ int main (int argc, char **argv) {
 	 * --cipher, -C: Show cipher used for exchange.
 	 * --issuer, -i: Show certificate issuer information.
 	 * --method, -m: Show method version for exchange.
+	 * --no-sni, -N: Disable SNI support.
 	 * --quiet, -q: Suppress progress-related output.
 	 * --raw, -r: Show raw certificate contents.
 	 * --serial, -S: Show certificate serial number.
@@ -72,6 +73,7 @@ int main (int argc, char **argv) {
 	cipher = 0;
 	issuer = 0;
 	meth = 0;
+	no_sni = 0;
 	quiet = 0;
 	raw = 0;
 	serial = 0;
@@ -167,6 +169,16 @@ int main (int argc, char **argv) {
 	    in_array("-m", argv, argc)) {
 
 		meth = 1;
+	}
+
+	/**
+	 * If --no-sni option was given, disable
+	 * establishing connection, handshake.
+	 */
+	if (in_array("--no-sni", argv, argc) ||
+	    in_array("-N", argv, argc)) {
+
+		no_sni = 1;
 	}
 
 	/**
@@ -341,6 +353,10 @@ int main (int argc, char **argv) {
 	 */
 	ssl = SSL_new(ctx);
 	SSL_set_connect_state(ssl);
+
+	if (!no_sni) {
+		SSL_set_tlsext_host_name(ssl, hostname);
+	}
 
 	if (!quiet) {
 		now = clock();
