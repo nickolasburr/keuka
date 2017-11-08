@@ -48,7 +48,7 @@ static option_t options[] = {
 	{
 		"--issuer",
 		"-i",
-		"Show certificate issuer information."
+		"Show certificate issuer."
 	},
 	{
 		"--method",
@@ -63,7 +63,7 @@ static option_t options[] = {
 	{
 		"--quiet",
 		"-q",
-		"Suppress progress-related output.",
+		"Suppress timing and progress output.",
 	},
 	{
 		"--raw",
@@ -93,12 +93,12 @@ static option_t options[] = {
 	{
 		"--help",
 		"-h",
-		"Show help information and usage examples.",
+		"Show help information.",
 	},
 	{
 		"--version",
 		"-v",
-		"Show version information.",
+		"Show version number.",
 	},
 };
 
