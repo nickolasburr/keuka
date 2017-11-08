@@ -205,46 +205,19 @@ JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
 Aug 11 23:12:50 2018 GMT
 ```
 
-#### Get key length, certificate chain, cipher, certificate issuer, handshake method, serial number, certificate signature algorithm, certificate validity range, and raw key and certificate contents.
+#### Get raw public key and certificate(s).
 
-`keuka --bits --chain --cipher --issuer --method --serial --signature-algorithm --validity --raw -- www.gnu.org`
+`keuka -q -r -- www.gnu.org`
 
 ```
---- [0.000014] Establishing SSL context.
---- [0.000403] SSL context established.
---> [0.001480] Establishing connection to www.gnu.org.
-<-- [0.001507] Connection established.
---> [0.001596] Attaching SSL session to socket.
-<-- [0.001614] SSL session attached to socket.
---> [0.001614] Initiating handshake with www.gnu.org.
-<-- [0.003794] Handshake complete.
-
---- Cipher: ECDHE-RSA-AES128-GCM-SHA256
---- Method: TLSv1.2
---- Certificate Chain:
-    0: --- Issuer: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
-       --- Bits: 2048
-       --- Serial: 04D5DB3D40FAACC68EB0B07188517C0858C1
-       --- Signature Algorithm: sha256WithRSAEncryption
-       --- Validity:
-           --- Not Before: Sep 27 09:01:00 2017 GMT
-           --- Not After: Dec 26 09:01:00 2017 GMT
-    1: --- Issuer: O=Digital Signature Trust Co., CN=DST Root CA X3
-       --- Bits: 2048
-       --- Serial: 0A0141420000015385736A0B85ECA708
-       --- Signature Algorithm: sha256WithRSAEncryption
-       --- Validity:
-           --- Not Before: Mar 17 16:40:46 2016 GMT
-           --- Not After: Mar 17 16:40:46 2021 GMT
-
 -----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7No
-YzDq1zUmGSXhvb418XCSL7e4S0EFq6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf
-15Gan/PQeGdxyGkOlZHP/uaZ6WA8SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K
-671B5TaYucv9bTyWaN8jKkKQDIZ0Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+X
-hq+w3Brvaw2VFn3EK6BlspkENnWAa6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiV
-FrqoM7hD8bEfwzB/onkxEz0tNvjj/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3D
-kwIDAQAB
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvvqMJ98hjHN7HyNq8oxL
+RomE+O2rbIBsdxhUxNAbj+F03WTZUG7xz9hdUHxr+1oTG2eBp0+n9LRIDEw5dkx2
+bfKHZioxiwUEPNEQr8QErudFfsmR5+SKBmPMjk1njmnRkZErFGWB9FMGFIo8C9AM
+1gOHr1caJUw4auTDZMhchL7gOPZVGTqe21qVCZzT/CjRUN/wzGSVON2depTYXn41
+yKSMXN0lJZj6PQwSuhfjv0NsASBOY9bWlTeduFKB49VvFVY8TTajvr7ZZL6Ripxh
+pmdtcsU+7uAnE68NoFvq9lgbHSg/Syzf1Vv1oPCx/lrrisEbJN6OgNzryDecz3R9
+3QIDAQAB
 -----END PUBLIC KEY-----
 
 -----BEGIN CERTIFICATE-----
@@ -277,34 +250,6 @@ b3J5LzANBgkqhkiG9w0BAQsFAAOCAQEANJfoCZuo5apkn6Kncabwq7JoCsMFVrzk
 bBlPN7x81vtmY/mA7bboMLU5ZtuhSW2d82o9/Uo1IY2o0X32ZBCdTKRvABN3urDQ
 9e1txwfZyuJefgX2sZrv1QlmjI4jQwVPgMxwBK7asmxP8ZWkqGfnZokCX+iYOI0U
 lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
------END CERTIFICATE-----
-
------BEGIN CERTIFICATE-----
-MIIEkjCCA3qgAwIBAgIQCgFBQgAAAVOFc2oLheynCDANBgkqhkiG9w0BAQsFADA/
-MSQwIgYDVQQKExtEaWdpdGFsIFNpZ25hdHVyZSBUcnVzdCBDby4xFzAVBgNVBAMT
-DkRTVCBSb290IENBIFgzMB4XDTE2MDMxNzE2NDA0NloXDTIxMDMxNzE2NDA0Nlow
-SjELMAkGA1UEBhMCVVMxFjAUBgNVBAoTDUxldCdzIEVuY3J5cHQxIzAhBgNVBAMT
-GkxldCdzIEVuY3J5cHQgQXV0aG9yaXR5IFgzMIIBIjANBgkqhkiG9w0BAQEFAAOC
-AQ8AMIIBCgKCAQEAnNMM8FrlLke3cl03g7NoYzDq1zUmGSXhvb418XCSL7e4S0EF
-q6meNQhY7LEqxGiHC6PjdeTm86dicbp5gWAf15Gan/PQeGdxyGkOlZHP/uaZ6WA8
-SMx+yk13EiSdRxta67nsHjcAHJyse6cF6s5K671B5TaYucv9bTyWaN8jKkKQDIZ0
-Z8h/pZq4UmEUEz9l6YKHy9v6Dlb2honzhT+Xhq+w3Brvaw2VFn3EK6BlspkENnWA
-a6xK8xuQSXgvopZPKiAlKQTGdMDQMc2PMTiVFrqoM7hD8bEfwzB/onkxEz0tNvjj
-/PIzark5McWvxI0NHWQWM6r6hCm21AvA2H3DkwIDAQABo4IBfTCCAXkwEgYDVR0T
-AQH/BAgwBgEB/wIBADAOBgNVHQ8BAf8EBAMCAYYwfwYIKwYBBQUHAQEEczBxMDIG
-CCsGAQUFBzABhiZodHRwOi8vaXNyZy50cnVzdGlkLm9jc3AuaWRlbnRydXN0LmNv
-bTA7BggrBgEFBQcwAoYvaHR0cDovL2FwcHMuaWRlbnRydXN0LmNvbS9yb290cy9k
-c3Ryb290Y2F4My5wN2MwHwYDVR0jBBgwFoAUxKexpHsscfrb4UuQdf/EFWCFiRAw
-VAYDVR0gBE0wSzAIBgZngQwBAgEwPwYLKwYBBAGC3xMBAQEwMDAuBggrBgEFBQcC
-ARYiaHR0cDovL2Nwcy5yb290LXgxLmxldHNlbmNyeXB0Lm9yZzA8BgNVHR8ENTAz
-MDGgL6AthitodHRwOi8vY3JsLmlkZW50cnVzdC5jb20vRFNUUk9PVENBWDNDUkwu
-Y3JsMB0GA1UdDgQWBBSoSmpjBH3duubRObemRWXv86jsoTANBgkqhkiG9w0BAQsF
-AAOCAQEA3TPXEfNjWDjdGBX7CVW+dla5cEilaUcne8IkCJLxWh9KEik3JHRRHGJo
-uM2VcGfl96S8TihRzZvoroed6ti6WqEBmtzw3Wodatg+VyOeph4EYpr/1wXKtx8/
-wApIvJSwtmVi4MFU5aMqrSDE6ea73Mj2tcMyo5jMd6jmeWUHK8so/joWUoHOUgwu
-X4Po1QYz+3dszkDqMp4fklxBwXRsW10KXzPMTZ+sOPAveyxindmjkW8lGy+QsRlG
-PfZ+G6Z6h7mjem0Y+iWlkYcV4PIWL1iwBi8saCbGS5jN2p8M+X+Q7UNKEkROb3N6
-KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg==
 -----END CERTIFICATE-----
 ```
 
