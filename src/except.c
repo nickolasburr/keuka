@@ -5,6 +5,7 @@
  */
 
 #include "common.h"
+#include "assert.h"
 #include "except.h"
 #include "utils.h"
 
