@@ -56,7 +56,7 @@ Get handshake information.
 <-- [0.004188] Handshake complete.
 ```
 
-Get cipher and certificate chain<sup>[1](#chain)</sup>.
+#### Get cipher and certificate chain<sup>[1](#chain)</sup>.
 
 `keuka --chain --cipher -- amazon.com`
 
@@ -76,7 +76,7 @@ Get cipher and certificate chain<sup>[1](#chain)</sup>.
     1: [redacted]
 ```
 
-Get cipher, format for use in a shell script.
+#### Get cipher, format for use in a shell script.
 
 `keuka -q -C amazon.com | cut -d' ' -f3`
 
@@ -84,7 +84,7 @@ Get cipher, format for use in a shell script.
 ECDHE-RSA-AES128-GCM-SHA256
 ```
 
-Get certificate chain, certificate issuer, and handshake method (e.g. `TLSv1.2`).
+#### Get certificate chain, certificate issuer, and handshake method (e.g. `TLSv1.2`).
 
 `keuka --chain --issuer --method -- google.com`
 
@@ -105,7 +105,7 @@ Get certificate chain, certificate issuer, and handshake method (e.g. `TLSv1.2`)
     2: --- Issuer: C=US, O=Equifax, OU=Equifax Secure Certificate Authority
 ```
 
-Get cipher, certificate issuer, handshake method, and raw key and certificate contents.
+#### Get cipher, certificate issuer, handshake method, and raw key and certificate contents.
 
 `keuka --cipher --issuer --method --raw -- www.openssl.org`
 
@@ -164,7 +164,7 @@ JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
 -----END CERTIFICATE-----
 ```
 
-Get certificate chain, handshake method, and certificate signature algorithm.
+#### Get certificate chain, handshake method, and certificate signature algorithm.
 
 `keuka --chain --method --signature-algorithm -- www.ietf.org`
 
@@ -185,7 +185,7 @@ Get certificate chain, handshake method, and certificate signature algorithm.
     2: --- Signature Algorithm: sha256WithRSAEncryption
 ```
 
-Get certificate issuer, certificate subject, certificate validity range, and suppress progress output.
+#### Get certificate issuer, certificate subject, certificate validity range, and suppress progress output.
 
 `keuka --issuer --subject --validity --quiet -- www.ieee.org`
 
@@ -197,7 +197,7 @@ Get certificate issuer, certificate subject, certificate validity range, and sup
     --- Not After: Oct 16 23:59:59 2018 GMT
 ```
 
-Get certificate expiration date.
+#### Get certificate expiration date.
 
 `keuka -q -V www.ietf.org | tail -n +3 | sed 's/   --- Not After: //g'`
 
@@ -205,7 +205,7 @@ Get certificate expiration date.
 Aug 11 23:12:50 2018 GMT
 ```
 
-Get key length, certificate chain, cipher, certificate issuer, handshake method, serial number, certificate signature algorithm, certificate validity range, and raw key and certificate contents.
+#### Get key length, certificate chain, cipher, certificate issuer, handshake method, serial number, certificate signature algorithm, certificate validity range, and raw key and certificate contents.
 
 `keuka --bits --chain --cipher --issuer --method --serial --signature-algorithm --validity --raw -- www.gnu.org`
 
