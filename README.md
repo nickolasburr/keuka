@@ -51,14 +51,14 @@ establishment, connection establishment, and handshake initiation and completion
 `keuka www.openssl.org`
 
 ```
---- [0.000052] Establishing SSL context.
---- [0.000721] SSL context established.
---> [0.002033] Establishing connection to www.openssl.org.
-<-- [0.002056] Connection established.
---> [0.002161] Attaching SSL session to socket.
-<-- [0.002176] SSL session attached to socket.
---> [0.002176] Initiating handshake with www.openssl.org.
-<-- [0.004188] Handshake complete.
+--- [0.000052s] Establishing SSL context.
+--- [0.000721s] SSL context established.
+--> [0.002033s] Establishing connection to www.openssl.org.
+<-- [0.002056s] Connection established.
+--> [0.002161s] Attaching SSL session to socket.
+<-- [0.002176s] SSL session attached to socket.
+--> [0.002176s] Initiating handshake with www.openssl.org.
+<-- [0.004188s] Handshake complete.
 ```
 
 #### Get cipher and certificate chain<sup>[1](#chain)</sup>.
@@ -66,14 +66,14 @@ establishment, connection establishment, and handshake initiation and completion
 `keuka --chain --cipher -- amazon.com`
 
 ```
---- [0.000018] Establishing SSL context.
---- [0.000494] SSL context established.
---> [0.001827] Establishing connection to amazon.com.
-<-- [0.001866] Connection established.
---> [0.001985] Attaching SSL session to socket.
-<-- [0.002024] SSL session attached to socket.
---> [0.002024] Initiating handshake with amazon.com.
-<-- [0.004389] Handshake complete.
+--- [0.000018s] Establishing SSL context.
+--- [0.000494s] SSL context established.
+--> [0.001827s] Establishing connection to amazon.com.
+<-- [0.001866s] Connection established.
+--> [0.001985s] Attaching SSL session to socket.
+<-- [0.002024s] SSL session attached to socket.
+--> [0.002024s] Initiating handshake with amazon.com.
+<-- [0.004389s] Handshake complete.
 
 --- Cipher: ECDHE-RSA-AES128-GCM-SHA256
 --- Certificate Chain:
