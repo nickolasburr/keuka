@@ -81,25 +81,22 @@ establishment, connection establishment, and handshake initiation and completion
     1: [redacted]
 ```
 
-#### Get certificate chain, certificate issuer, and handshake method.
+#### Get handshake method and signature algorithm.
 
-`keuka --chain --method -- google.com`
+`keuka -m -A google.com`
 
 ```
---- [0.000012s] Establishing SSL context.
---- [0.000321s] SSL context established.
---> [0.001207s] Establishing connection to google.com.
-<-- [0.001215s] Connection established.
---> [0.001285s] Attaching SSL session to socket.
-<-- [0.001295s] SSL session attached to socket.
---> [0.001295s] Initiating handshake with google.com.
-<-- [0.003458s] Handshake complete.
+--- [0.000013s] Establishing SSL context.
+--- [0.000330s] SSL context established.
+--> [0.001227s] Establishing connection to google.com.
+<-- [0.001262s] Connection established.
+--> [0.001360s] Attaching SSL session to socket.
+<-- [0.001373s] SSL session attached to socket.
+--> [0.001373s] Initiating handshake with google.com.
+<-- [0.003505s] Handshake complete.
 
 --- Method: TLSv1.2
---- Certificate Chain:
-    0: [redacted]
-    1: [redacted]
-    2: [redacted]
+--- Signature Algorithm: sha256WithRSAEncryption
 ```
 
 ### Advanced Usage
