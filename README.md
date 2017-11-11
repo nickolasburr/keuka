@@ -129,7 +129,7 @@ Aug 11 23:12:50 2018 GMT
 CN=github.com
 ```
 
-#### Get public key and certificate, and split into separate files.
+#### Get public key and certificate, and split into separate files<sup>[2](#split)</sup>.
 
 `keuka -q -r www.gnu.org | split -p '-----BEGIN CERTIFICATE-----' - keuka-`
 
@@ -186,3 +186,4 @@ lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
 ## Notes
 
 <a name="#chain">1</a>: Specifying `--chain` without complementary options shows `[redacted]` per certificate.
+<a name="#split">2</a>: Assumes BSD split(1). For GNU split(1), use `--filter` option instead.
