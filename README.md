@@ -185,5 +185,5 @@ lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
 
 ## Notes
 
-<div><a name="#chain">1</a>: Specifying `--chain` without complementary options shows `[redacted]` per certificate.</div>
-<div><a name="#split">2</a>: Assumes BSD split(1). For GNU split(1), use `--filter` option instead.</div>
++ <a name="#chain">1</a>: Specifying `--chain` without complementary options shows `[redacted]` per certificate.</div>
++ <a name="#split">2</a>: Assumes BSD split(1). For GNU split(1), use `--filter` option instead.</div>
