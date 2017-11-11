@@ -55,8 +55,8 @@ establishment, connection establishment, and handshake initiation and completion
 --- [0.000721s] SSL context established.
 --> [0.002033s] Establishing connection to www.openssl.org.
 <-- [0.002056s] Connection established.
---> [0.002161s] Attaching SSL session to socket.
-<-- [0.002176s] SSL session attached to socket.
+--- [0.002161s] Attaching SSL session to socket.
+--- [0.002176s] SSL session attached to socket.
 --> [0.002176s] Initiating handshake with www.openssl.org.
 <-- [0.004188s] Handshake complete.
 ```
@@ -70,8 +70,8 @@ establishment, connection establishment, and handshake initiation and completion
 --- [0.000494s] SSL context established.
 --> [0.001827s] Establishing connection to amazon.com.
 <-- [0.001866s] Connection established.
---> [0.001985s] Attaching SSL session to socket.
-<-- [0.002024s] SSL session attached to socket.
+--- [0.001985s] Attaching SSL session to socket.
+--- [0.002024s] SSL session attached to socket.
 --> [0.002024s] Initiating handshake with amazon.com.
 <-- [0.004389s] Handshake complete.
 
@@ -90,8 +90,8 @@ establishment, connection establishment, and handshake initiation and completion
 --- [0.000330s] SSL context established.
 --> [0.001227s] Establishing connection to google.com.
 <-- [0.001262s] Connection established.
---> [0.001360s] Attaching SSL session to socket.
-<-- [0.001373s] SSL session attached to socket.
+--- [0.001360s] Attaching SSL session to socket.
+--- [0.001373s] SSL session attached to socket.
 --> [0.001373s] Initiating handshake with google.com.
 <-- [0.003505s] Handshake complete.
 
