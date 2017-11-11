@@ -295,7 +295,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Error: Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to establish SSL context.\n");
 		}
@@ -333,7 +333,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
+			BIO_printf(bp, "%s [%fs] Error: Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
 		} else {
 			BIO_printf(bp, "Error: Unable to resolve hostname %s.\n", hostname);
 		}
@@ -365,7 +365,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_SEND_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_DASH_ARROW, elapsed);
 	}
 
 	/**
@@ -379,7 +379,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Unable to attach SSL session to socket.\n", KEUKA_RECV_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Error: Unable to attach SSL session to socket.\n", KEUKA_DASH_ARROW, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
 		}
@@ -391,7 +391,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_DASH_ARROW, elapsed);
 		BIO_printf(bp, "%s [%fs] Initiating handshake with %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
 	}
 
@@ -406,7 +406,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
+			BIO_printf(bp, "%s [%fs] Error: Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
 		} else {
 			BIO_printf(bp, "Error: Could not build SSL session with %s. Handshake aborted.\n", url);
 		}
