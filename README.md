@@ -41,7 +41,12 @@ make install
 
 ## Examples
 
-#### Get handshake information.
+### Basic Usage
+
+`keuka` provides basic progress and timing information, including context
+establishment, connection establishment, and handshake initiation and completion.
+
+#### Get progress and timing information.
 
 `keuka www.openssl.org`
 
@@ -76,125 +81,39 @@ make install
     1: [redacted]
 ```
 
-#### Get cipher, format for use in a shell script.
+#### Get certificate chain, certificate issuer, and handshake method.
+
+`keuka --chain --method -- google.com`
+
+```
+--- [0.000012s] Establishing SSL context.
+--- [0.000321s] SSL context established.
+--> [0.001207s] Establishing connection to google.com.
+<-- [0.001215s] Connection established.
+--> [0.001285s] Attaching SSL session to socket.
+<-- [0.001295s] SSL session attached to socket.
+--> [0.001295s] Initiating handshake with google.com.
+<-- [0.003458s] Handshake complete.
+
+--- Method: TLSv1.2
+--- Certificate Chain:
+    0: [redacted]
+    1: [redacted]
+    2: [redacted]
+```
+
+### Advanced Usage
+
+`keuka` was built to make extracting key and certificate information simple.
+Likewise, it can be used with tools such as `sed`, `grep`, and `cut` to fulfill
+a variety of tasks. Below are a few examples of advanced usage.
+
+#### Get cipher.
 
 `keuka -q -C amazon.com | cut -d' ' -f3`
 
 ```
 ECDHE-RSA-AES128-GCM-SHA256
-```
-
-#### Get certificate chain, certificate issuer, and handshake method (e.g. `TLSv1.2`).
-
-`keuka --chain --issuer --method -- google.com`
-
-```
---- [0.000012] Establishing SSL context.
---- [0.000348] SSL context established.
---> [0.001267] Establishing connection to google.com.
-<-- [0.001283] Connection established.
---> [0.001337] Attaching SSL session to socket.
-<-- [0.001355] SSL session attached to socket.
---> [0.001355] Initiating handshake with google.com.
-<-- [0.003434] Handshake complete.
-
---- Method: TLSv1.2
---- Certificate Chain:
-    0: --- Issuer: C=US, O=Google Inc, CN=Google Internet Authority G2
-    1: --- Issuer: C=US, O=GeoTrust Inc., CN=GeoTrust Global CA
-    2: --- Issuer: C=US, O=Equifax, OU=Equifax Secure Certificate Authority
-```
-
-#### Get cipher, certificate issuer, handshake method, and raw key and certificate contents.
-
-`keuka --cipher --issuer --method --raw -- www.openssl.org`
-
-```
---- [0.000013] Establishing SSL context.
---- [0.000348] SSL context established.
---> [0.001546] Establishing connection to www.openssl.org.
-<-- [0.001572] Connection established.
---> [0.001681] Attaching SSL session to socket.
-<-- [0.001706] SSL session attached to socket.
---> [0.001706] Initiating handshake with www.openssl.org.
-<-- [0.003721] Handshake complete.
-
---- Cipher: ECDHE-RSA-AES256-GCM-SHA384
---- Method: TLSv1.2
---- Issuer: C=US, O=Let's Encrypt, CN=Let's Encrypt Authority X3
-
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp2M+PqoZrXUziuc80mU+
-JeVEC2lZzuiEjHH8nF3oxijY8ZhUiODj69JDQp0q97iOgb7VebRm1UQV3totWwlU
-8gRbvIekeiw70YsPE0y0WB0/eN8cPHgg7ngjJ+6hZQvqIHDlh3Q9OG3kCtrPcddD
-BKN8ci2SgKOxMDIlvmeN1Bv72JUOPRGLyq7pHsCKtx3vqjJZ/RV0v7L72mMaE5H6
-eQwsJJDh7R9RjcudimijJLpr662YHK1qoAYbi9i+dpzVL4dXXGBarpnWN0IgqYQs
-nU7Pf+vA1mCkxXAetIvECOKK97QSxBbwRbkEoEavuHEQNBCuoPzBUsys0C7kJZ8f
-ywIDAQAB
------END PUBLIC KEY-----
-
------BEGIN CERTIFICATE-----
-MIIFATCCA+mgAwIBAgISA8BGaubNIyZD/Mci4GG+hCCJMA0GCSqGSIb3DQEBCwUA
-MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
-ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzEwMDYyMDQ5MzBaFw0x
-ODAxMDQyMDQ5MzBaMBoxGDAWBgNVBAMTD3d3dy5vcGVuc3NsLm9yZzCCASIwDQYJ
-KoZIhvcNAQEBBQADggEPADCCAQoCggEBAKdjPj6qGa11M4rnPNJlPiXlRAtpWc7o
-hIxx/Jxd6MYo2PGYVIjg4+vSQ0KdKve4joG+1Xm0ZtVEFd7aLVsJVPIEW7yHpHos
-O9GLDxNMtFgdP3jfHDx4IO54IyfuoWUL6iBw5Yd0PTht5Araz3HXQwSjfHItkoCj
-sTAyJb5njdQb+9iVDj0Ri8qu6R7Aircd76oyWf0VdL+y+9pjGhOR+nkMLCSQ4e0f
-UY3LnYpooyS6a+utmBytaqAGG4vYvnac1S+HV1xgWq6Z1jdCIKmELJ1Oz3/rwNZg
-pMVwHrSLxAjiive0EsQW8EW5BKBGr7hxEDQQrqD8wVLMrNAu5CWfH8sCAwEAAaOC
-Ag8wggILMA4GA1UdDwEB/wQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYB
-BQUHAwIwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQUwXoJGX10eae5sehLWnnnCwtf
-lkowHwYDVR0jBBgwFoAUqEpqYwR93brm0Tm3pkVl7/Oo7KEwbwYIKwYBBQUHAQEE
-YzBhMC4GCCsGAQUFBzABhiJodHRwOi8vb2NzcC5pbnQteDMubGV0c2VuY3J5cHQu
-b3JnMC8GCCsGAQUFBzAChiNodHRwOi8vY2VydC5pbnQteDMubGV0c2VuY3J5cHQu
-b3JnLzAaBgNVHREEEzARgg93d3cub3BlbnNzbC5vcmcwgf4GA1UdIASB9jCB8zAI
-BgZngQwBAgEwgeYGCysGAQQBgt8TAQEBMIHWMCYGCCsGAQUFBwIBFhpodHRwOi8v
-Y3BzLmxldHNlbmNyeXB0Lm9yZzCBqwYIKwYBBQUHAgIwgZ4MgZtUaGlzIENlcnRp
-ZmljYXRlIG1heSBvbmx5IGJlIHJlbGllZCB1cG9uIGJ5IFJlbHlpbmcgUGFydGll
-cyBhbmQgb25seSBpbiBhY2NvcmRhbmNlIHdpdGggdGhlIENlcnRpZmljYXRlIFBv
-bGljeSBmb3VuZCBhdCBodHRwczovL2xldHNlbmNyeXB0Lm9yZy9yZXBvc2l0b3J5
-LzANBgkqhkiG9w0BAQsFAAOCAQEAkpQEEoZtC7am78t5yu8w20QpZ/JTTciHRFTT
-6h64phLQ5Z2epI9MIBXrUvteYS4MJ2rKDyDhxfJNWxbfss8QhRkImX+315Y6Trbd
-hcHEy27g8ozZ4o7Yl8NMEzmuFSDTi+Ur+lhc+HNbl8WeT+bQQKwRyaT1KEA6MJF2
-RgM1MKdcygsBjEWaZVQ7BosNPcY0bxO8ozOcPEKKs4FdK8eduWJ8MHI5+VoVyi8V
-YWBGbFUU5x/8Wr3GuwYXXdXRAwlwMNXRESTWbAg83dwyV2zizd87v8+HDzaBvg7n
-JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
------END CERTIFICATE-----
-```
-
-#### Get certificate chain, handshake method, and certificate signature algorithm.
-
-`keuka --chain --method --signature-algorithm -- www.ietf.org`
-
-```
---- [0.000049] Establishing SSL context.
---- [0.000720] SSL context established.
---> [0.001958] Establishing connection to www.ietf.org.
-<-- [0.001980] Connection established.
---> [0.002087] Attaching SSL session to socket.
-<-- [0.002111] SSL session attached to socket.
---> [0.002111] Initiating handshake with www.ietf.org.
-<-- [0.004333] Handshake complete.
-
---- Method: TLSv1.2
---- Certificate Chain:
-    0: --- Signature Algorithm: sha256WithRSAEncryption
-    1: --- Signature Algorithm: sha256WithRSAEncryption
-    2: --- Signature Algorithm: sha256WithRSAEncryption
-```
-
-#### Get certificate issuer, certificate subject, certificate validity range, and suppress progress output.
-
-`keuka --issuer --subject --validity --quiet -- www.ieee.org`
-
-```
---- Subject: C=US,ST=New Jersey,L=Piscataway,O=Institute of Electrical and Electronics Engineers, Inc.,OU=IT,CN=www.ieee.org
---- Issuer: C=US, O=Symantec Corporation, OU=Symantec Trust Network, CN=Symantec Class 3 Secure Server CA - G4
---- Validity:
-    --- Not Before: Jul 17 00:00:00 2017 GMT
-    --- Not After: Oct 16 23:59:59 2018 GMT
 ```
 
 #### Get certificate expiration date.
@@ -205,11 +124,21 @@ JaGz+SjzenXX2WbfQiyNv8ycU0jjDOPDc8N1hDcxw9XlKkSmtA==
 Aug 11 23:12:50 2018 GMT
 ```
 
-#### Get raw public key and certificate(s).
+#### Get Common Name from certificate subject.
 
-`keuka -q -r -- www.gnu.org`
+`keuka -q -s www.github.com | sed 's/--- Subject: //g' | grep --color=never -o CN=*.github.com`
 
 ```
+CN=github.com
+```
+
+#### Get public key and certificate, and split into separate files.
+
+`keuka -q -r www.gnu.org | split -p '-----BEGIN CERTIFICATE-----' - keuka-`
+
+```
+# -rw-r--r--  1 nickolasburr staff   453 Nov 11 14:24 keuka-aa
+
 -----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvvqMJ98hjHN7HyNq8oxL
 RomE+O2rbIBsdxhUxNAbj+F03WTZUG7xz9hdUHxr+1oTG2eBp0+n9LRIDEw5dkx2
@@ -219,6 +148,10 @@ yKSMXN0lJZj6PQwSuhfjv0NsASBOY9bWlTeduFKB49VvFVY8TTajvr7ZZL6Ripxh
 pmdtcsU+7uAnE68NoFvq9lgbHSg/Syzf1Vv1oPCx/lrrisEbJN6OgNzryDecz3R9
 3QIDAQAB
 -----END PUBLIC KEY-----
+```
+
+```
+# -rw-r--r--  1 nickolasburr staff   453 Nov 11 14:24 keuka-ab
 
 -----BEGIN CERTIFICATE-----
 MIIFZDCCBEygAwIBAgISBNXbPUD6rMaOsLBxiFF8CFjBMA0GCSqGSIb3DQEBCwUA
