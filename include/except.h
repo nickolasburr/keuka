@@ -3,8 +3,8 @@
  *
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
-#ifndef GIT_STASHD_EXCEPT_H
-#define GIT_STASHD_EXCEPT_H
+#ifndef KEUKA_EXCEPT_H
+#define KEUKA_EXCEPT_H
 
 #include <setjmp.h>
 
@@ -70,4 +70,4 @@ void Except_raise(const T *e, const char *file, int line);
 
 #undef T
 
-#endif /* GIT_STASHD_EXCEPT_H */
+#endif /* KEUKA_EXCEPT_H */

@@ -4,8 +4,8 @@
  * Copyright (C) 2017 Nickolas Burr <nickolasburr@gmail.com>
  */
 
-#ifndef GIT_STASHD_MEM_H
-#define GIT_STASHD_MEM_H
+#ifndef KEUKA_MEM_H
+#define KEUKA_MEM_H
 
 #include "common.h"
 #include "assert.h"
@@ -25,4 +25,4 @@ extern void *Mem_resize(void *ptr, long nbytes, const char *file, int line);
 #define FREE(ptr)             ((void)(Mem_free((ptr), __FILE__, __LINE__), (ptr) = 0))
 #define RESIZE(ptr, nbytes)   ((ptr) = Mem_resize((ptr), (nbytes), __FILE__, __LINE__))
 
-#endif /* GIT_STASHD_MEM_H */
+#endif /* KEUKA_MEM_H */
