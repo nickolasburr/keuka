@@ -61,7 +61,7 @@ establishment, connection establishment, and handshake initiation and completion
 <-- [0.004188s] Handshake complete.
 ```
 
-#### Get cipher and certificate chain.<sup>[1](#chain)</sup>
+#### Get cipher and certificate chain.<sup>[1](#notes)</sup>
 
 `keuka --chain --cipher -- amazon.com`
 
@@ -129,7 +129,7 @@ Aug 11 23:12:50 2018 GMT
 CN=github.com
 ```
 
-#### Get public key and certificate, and split into separate files.<sup>[2](#split)</sup>
+#### Get public key and certificate, and split into separate files.<sup>[2](#notes)</sup>
 
 `keuka -qr www.gnu.org | split -p '-----BEGIN CERTIFICATE-----' - keuka-`
 
@@ -185,5 +185,5 @@ lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
 
 ## Notes
 
-+ <a name="#chain">1</a>: Specifying `--chain` without complementary options shows `[redacted]` per certificate.</div>
-+ <a name="#split">2</a>: Assumes BSD split(1). For GNU split(1), use `--filter` instead.</div>
+1. Specifying `--chain` without complementary options shows `[redacted]` per certificate.
+2. Assumes BSD split(1). For GNU split(1), use `--filter` instead.
