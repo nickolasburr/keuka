@@ -8,7 +8,7 @@ There are currently two installation methods: Homebrew and manual.
 
 ### Homebrew
 
-```shell
+```
 brew tap nickolasburr/pfa
 brew install keuka
 ```
@@ -17,7 +17,7 @@ brew install keuka
 
 By default, `keuka` is installed to `/usr/local/bin`. You can set the `prefix` variable when running `make` to specify an alternate path.
 
-```shell
+```
 make
 make install
 ```
@@ -83,7 +83,7 @@ establishment, connection establishment, and handshake initiation and completion
 
 #### Get handshake method and signature algorithm.
 
-`keuka -m -A google.com`
+`keuka -mA google.com`
 
 ```
 --- [0.000013s] Establishing SSL context.
@@ -107,7 +107,7 @@ a variety of tasks. Below are a few examples of advanced usage.
 
 #### Get cipher.
 
-`keuka -q -C amazon.com | cut -d' ' -f3`
+`keuka -qC amazon.com | cut -d' ' -f3`
 
 ```
 ECDHE-RSA-AES128-GCM-SHA256
@@ -115,7 +115,7 @@ ECDHE-RSA-AES128-GCM-SHA256
 
 #### Get certificate expiration date.
 
-`keuka -q -V www.ietf.org | tail -n +3 | sed 's/   --- Not After: //g'`
+`keuka -qV www.ietf.org | tail -n +3 | sed 's/   --- Not After: //g' | awk '{$1=$1};1'`
 
 ```
 Aug 11 23:12:50 2018 GMT
@@ -123,7 +123,7 @@ Aug 11 23:12:50 2018 GMT
 
 #### Get Common Name from certificate subject.
 
-`keuka -q -s www.github.com | sed 's/--- Subject: //g' | grep --color=never -o CN=*.github.com`
+`keuka -qs www.github.com | sed 's/--- Subject: //g' | grep --color=never -o CN=*.github.com`
 
 ```
 CN=github.com
@@ -131,7 +131,7 @@ CN=github.com
 
 #### Get public key and certificate, and split into separate files.<sup>[2](#split)</sup>
 
-`keuka -q -r www.gnu.org | split -p '-----BEGIN CERTIFICATE-----' - keuka-`
+`keuka -qr www.gnu.org | split -p '-----BEGIN CERTIFICATE-----' - keuka-`
 
 ```
 # -rw-r--r--  1 nickolasburr staff   453 Nov 11 14:24 keuka-aa
@@ -186,4 +186,4 @@ lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
 ## Notes
 
 + <a name="#chain">1</a>: Specifying `--chain` without complementary options shows `[redacted]` per certificate.</div>
-+ <a name="#split">2</a>: Assumes BSD split(1). For GNU split(1), use `--filter` option instead.</div>
++ <a name="#split">2</a>: Assumes BSD split(1). For GNU split(1), use `--filter` instead.</div>
