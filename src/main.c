@@ -291,7 +291,7 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Establishing SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Establishing SSL context.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 	}
 
 	/**
@@ -305,7 +305,7 @@ next:
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Error: Unable to establish SSL context.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to establish SSL context.\n");
 		}
@@ -317,7 +317,7 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] SSL context established.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] SSL context established.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 	}
 
 	/**
@@ -329,7 +329,7 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Establishing connection to %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
+		BIO_printf(bp, "%s [%fs] Establishing connection to %s.\n", KEUKA_OUTBOUND_INDICATOR, elapsed, hostname);
 	}
 
 	/**
@@ -343,7 +343,7 @@ next:
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
+			BIO_printf(bp, "%s [%fs] Error: Unable to resolve hostname %s.\n", KEUKA_INBOUND_INDICATOR, elapsed, hostname);
 		} else {
 			BIO_printf(bp, "Error: Unable to resolve hostname %s.\n", hostname);
 		}
@@ -355,7 +355,7 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Connection established.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Connection established.\n", KEUKA_INBOUND_INDICATOR, elapsed);
 	}
 
 	/**
@@ -375,7 +375,7 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 	}
 
 	/**
@@ -389,7 +389,7 @@ next:
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Unable to attach SSL session to socket.\n", KEUKA_DASH_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Error: Unable to attach SSL session to socket.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
 		}
@@ -401,8 +401,8 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_DASH_ARROW, elapsed);
-		BIO_printf(bp, "%s [%fs] Initiating handshake with %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
+		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
+		BIO_printf(bp, "%s [%fs] Initiating handshake with %s.\n", KEUKA_OUTBOUND_INDICATOR, elapsed, hostname);
 	}
 
 	/**
@@ -416,7 +416,7 @@ next:
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
+			BIO_printf(bp, "%s [%fs] Error: Could not build SSL session with %s. Handshake aborted.\n", KEUKA_INBOUND_INDICATOR, elapsed, url);
 		} else {
 			BIO_printf(bp, "Error: Could not build SSL session with %s. Handshake aborted.\n", url);
 		}
@@ -428,7 +428,7 @@ next:
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Handshake complete.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Handshake complete.\n", KEUKA_INBOUND_INDICATOR, elapsed);
 
 		if (pad_fmt) {
 			BIO_printf(bp, "\n");
