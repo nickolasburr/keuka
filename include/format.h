@@ -7,8 +7,8 @@
 #ifndef KEUKA_FORMAT_H
 #define KEUKA_FORMAT_H
 
-#define KEUKA_SEND_ARROW "-->"
-#define KEUKA_RECV_ARROW "<--"
-#define KEUKA_DASH_ARROW "---"
+#define KEUKA_OUTBOUND_INDICATOR "-->"
+#define KEUKA_INBOUND_INDICATOR "<--"
+#define KEUKA_NEUTRAL_INDICATOR "---"
 
 #endif /* KEUKA_FORMAT_H */

@@ -11,16 +11,17 @@
  *
  * keuka --chain --cipher --raw --serial google.com
  * keuka --issuer --method --signature-algorithm -- amazon.com
- * keuka -A -C -i -m github.com
+ * keuka -ACim github.com
+ * keuka -qCA www.ieee.org
  */
 
 int main (int argc, char **argv) {
 	clock_t start, end, now;
 	size_t crt_index, sig_bytes;
 	double elapsed;
-	int opt_index, arg_index, lindex, pindex, sig_type_err;
-	int bits, chain, cipher, issuer, meth, no_sni, pad_fmt, pad_tfmt, serial;
-	int server, raw, sig_algo, quiet, subject, validity;
+	int last_index, penult_index, sig_type_err, opt_value, short_opt_index, long_opt_index;
+	int bits, chain, cipher, issuer, meth, no_sni, pad_fmt, pad_tfmt, quiet;
+	int serial, server, raw, sig_algo, subject, validity;
 	const char *hostname;
 	const char *protocol = "https";
 	char port[MAX_PORT_LENGTH],
@@ -38,13 +39,13 @@ int main (int argc, char **argv) {
 	SSL *ssl;
 
 	server = 0;
-	lindex = (argc - 1);
-	pindex = (lindex - 1);
+	last_index = (argc - 1);
+	penult_index = (last_index - 1);
 
 	/**
 	 * Add padding after progress output, if applicable.
 	 */
-	pad_fmt = (argc > 2 && argv[pindex] != OPT_LSEP);
+	pad_fmt = (argc > 2 && argv[penult_index] != OPT_LSEP);
 
 	/**
 	 * Options:
@@ -74,6 +75,8 @@ int main (int argc, char **argv) {
 	issuer = 0;
 	meth = 0;
 	no_sni = 0;
+	short_opt_index = 0;
+	long_opt_index = 0;
 	quiet = 0;
 	raw = 0;
 	serial = 0;
@@ -81,27 +84,155 @@ int main (int argc, char **argv) {
 	subject = 0;
 	validity = 0;
 
-	if (in_array("--help", argv, argc) ||
-	    in_array("-h", argv, argc)) {
+	static struct option long_options[] = {
+		{ "bits", no_argument, 0, 'b' },
+		{ "chain", no_argument, 0, 'c' },
+		{ "cipher", no_argument, 0, 'C' },
+		{ "issuer", no_argument, 0, 'i' },
+		{ "method", no_argument, 0, 'm' },
+		{ "no-sni", no_argument, 0, 'N' },
+		{ "quiet", no_argument, 0, 'q' },
+		{ "raw", no_argument, 0, 'r' },
+		{ "serial", no_argument, 0, 'S' },
+		{ "signature-algorithm", no_argument, 0, 'A' },
+		{ "subject", no_argument, 0, 's' },
+		{ "validity", no_argument, 0, 'V' },
+		{ "help", no_argument, 0, 'h' },
+		{ "version", no_argument, 0, 'v' },
+	};
 
-		usage();
+	while ((opt_value = getopt_long(argc, argv, "bcCimNqrSAsVhv", long_options, &long_opt_index)) != -1) {
+		switch (opt_value) {
+			/**
+			 * If --bits option was given, output
+			 * public key length, in bits.
+			 */
+			case 'b':
+				bits = 1;
 
-		exit(EXIT_SUCCESS);
-	}
+				goto next;
+			/**
+			 * If --chain option was given, output
+			 * the entire peer certificate chain.
+			 */
+			case 'c':
+				chain = 1;
 
-	if (in_array("--version", argv, argc) ||
-	    in_array("-v", argv, argc)) {
+				goto next;
+			/**
+			 * If --cipher option was given, output
+			 * the cipher used for the exchange.
+			 */
+			case 'C':
+				cipher = 1;
 
-		fprintf(stdout, "%s\n", KEUKA_VERSION);
+				goto next;
+			/**
+			 * If --issuer option was given, output
+			 * issuer information for certificate.
+			 */
+			case 'i':
+				issuer = 1;
 
-		exit(EXIT_SUCCESS);
+				goto next;
+			/**
+			 * If --method option was given, output
+			 * version of method used for handshake.
+			 */
+			case 'm':
+				meth = 1;
+
+				goto next;
+			/**
+			 * If --no-sni option was given, disable
+			 * establishing connection, handshake.
+			 */
+			case 'N':
+				no_sni = 1;
+
+				goto next;
+			/**
+			 * If --quiet option was given, suppress
+			 * timing and progress-related output.
+			 */
+			case 'q':
+				quiet = 1;
+				pad_fmt = 0;
+
+				goto next;
+			/**
+			 * If --raw option was given, output
+			 * raw certificate contents to stdout.
+			 */
+			case 'r':
+				raw = 1;
+
+				goto next;
+			/**
+			 * If --serial option was given, output
+			 * serial number for the certificate(s).
+			 */
+			case 'S':
+				serial = 1;
+
+				goto next;
+			/**
+			 * If --signature-algorithm option was given,
+			 * output signature algorithm used for certificate(s).
+			 */
+			case 'A':
+				sig_algo = 1;
+
+				goto next;
+			/**
+			 * If --subject option was given, output
+			 * the certificate(s) subject information.
+			 */
+			case 's':
+				subject = 1;
+
+				goto next;
+			/**
+			 * If --validity option was given, output
+			 * Not Before/Not After validity time range.
+			 */
+			case 'V':
+				validity = 1;
+
+				goto next;
+			/**
+			 * If --help option was given, output
+			 * usage information and exit.
+			 */
+			case 'h':
+				usage();
+
+				exit(EXIT_SUCCESS);
+			/**
+			 * If --version option was given, output
+			 * the current release version and exit.
+			 */
+			case 'v':
+				fprintf(stdout, "%s\n", KEUKA_VERSION);
+
+				exit(EXIT_SUCCESS);
+			case '?':
+				usage();
+
+				exit(EXIT_FAILURE);
+			default:
+				break;
+		}
+
+next:
+		continue;
 	}
 
 	/**
 	 * If no arguments were given,
 	 * complain to stderr and exit.
 	 */
-	if (lindex < 1) {
+	if (last_index < 1) {
 		fprintf(stderr, "Error: Hostname not specified.\n");
 
 		exit(EXIT_FAILURE);
@@ -110,7 +241,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Limit length of hostname given as an argument.
 	 */
-	if (length(argv[lindex]) > MAX_HOSTNAME_LENGTH) {
+	if (length(argv[last_index]) > MAX_HOSTNAME_LENGTH) {
 		fprintf(stderr, "Error: Hostname exceeds maximum length of 256 characters.\n");
 
 		exit(EXIT_FAILURE);
@@ -119,128 +250,7 @@ int main (int argc, char **argv) {
 	/**
 	 * The last element in argv should be the peer hostname.
 	 */
-	hostname = argv[lindex];
-
-	/**
-	 * If --bits option was given, output
-	 * public key length, in bits.
-	 */
-	if (in_array("--bits", argv, argc) ||
-	    in_array("-b", argv, argc)) {
-
-		bits = 1;
-	}
-
-	/**
-	 * If --chain option was given, output
-	 * the entire peer certificate chain.
-	 */
-	if (in_array("--chain", argv, argc) ||
-	    in_array("-c", argv, argc)) {
-
-		chain = 1;
-	}
-
-	/**
-	 * If --cipher option was given, output
-	 * the cipher used for the exchange.
-	 */
-	if (in_array("--cipher", argv, argc) ||
-	    in_array("-C", argv, argc)) {
-
-		cipher = 1;
-	}
-
-	/**
-	 * If --issuer option was given, output
-	 * issuer information for certificate.
-	 */
-	if (in_array("--issuer", argv, argc) ||
-	    in_array("-i", argv, argc)) {
-
-		issuer = 1;
-	}
-
-	/**
-	 * If --method option was given, output
-	 * version of method used for handshake.
-	 */
-	if (in_array("--method", argv, argc) ||
-	    in_array("-m", argv, argc)) {
-
-		meth = 1;
-	}
-
-	/**
-	 * If --no-sni option was given, disable
-	 * establishing connection, handshake.
-	 */
-	if (in_array("--no-sni", argv, argc) ||
-	    in_array("-N", argv, argc)) {
-
-		no_sni = 1;
-	}
-
-	/**
-	 * If --quiet option was given,
-	 * suppress progress-related output.
-	 */
-	if (in_array("--quiet", argv, argc) ||
-	    in_array("-q", argv, argc)) {
-
-		quiet = 1;
-		pad_fmt = 0;
-	}
-
-	/**
-	 * If --raw option was given, output
-	 * raw certificate contents to stdout.
-	 */
-	if (in_array("--raw", argv, argc) ||
-	    in_array("-r", argv, argc)) {
-
-		raw = 1;
-	}
-
-	/**
-	 * If --serial option was given, output
-	 * serial number for the certificate(s).
-	 */
-	if (in_array("--serial", argv, argc) ||
-	    in_array("-S", argv, argc)) {
-
-		serial = 1;
-	}
-
-	/**
-	 * If --signature-algorithm option was given,
-	 * output signature algorithm used for certificate(s).
-	 */
-	if (in_array("--signature-algorithm", argv, argc) ||
-	    in_array("-A", argv, argc)) {
-
-		sig_algo = 1;
-	}
-
-	/**
-	 * If --subject option was given, output
-	 * the certificate(s) subject information.
-	 */
-	if (in_array("--subject", argv, argc) ||
-	    in_array("-s", argv, argc)) {
-
-		subject = 1;
-	}
-
-	/**
-	 * If --validity option was given, output
-	 * Not Before/Not After validity time range.
-	 */
-	if (in_array("--validity", argv, argc) ||
-	    in_array("-V", argv, argc)) {
-
-		validity = 1;
-	}
+	hostname = argv[last_index];
 
 	/**
 	 * Assemble URL for request.
@@ -281,7 +291,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Establishing SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Establishing SSL context.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 	}
 
 	/**
@@ -295,7 +305,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Unable to establish SSL context.\n", KEUKA_DASH_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Error: Unable to establish SSL context.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to establish SSL context.\n");
 		}
@@ -307,7 +317,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] SSL context established.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] SSL context established.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 	}
 
 	/**
@@ -319,7 +329,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Establishing connection to %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
+		BIO_printf(bp, "%s [%fs] Establishing connection to %s.\n", KEUKA_OUTBOUND_INDICATOR, elapsed, hostname);
 	}
 
 	/**
@@ -333,7 +343,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Unable to resolve hostname %s.\n", KEUKA_RECV_ARROW, elapsed, hostname);
+			BIO_printf(bp, "%s [%fs] Error: Unable to resolve hostname %s.\n", KEUKA_INBOUND_INDICATOR, elapsed, hostname);
 		} else {
 			BIO_printf(bp, "Error: Unable to resolve hostname %s.\n", hostname);
 		}
@@ -345,7 +355,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Connection established.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Connection established.\n", KEUKA_INBOUND_INDICATOR, elapsed);
 	}
 
 	/**
@@ -365,7 +375,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_DASH_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Attaching SSL session to socket.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 	}
 
 	/**
@@ -379,7 +389,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Unable to attach SSL session to socket.\n", KEUKA_DASH_ARROW, elapsed);
+			BIO_printf(bp, "%s [%fs] Error: Unable to attach SSL session to socket.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
 		} else {
 			BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
 		}
@@ -391,8 +401,8 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_DASH_ARROW, elapsed);
-		BIO_printf(bp, "%s [%fs] Initiating handshake with %s.\n", KEUKA_SEND_ARROW, elapsed, hostname);
+		BIO_printf(bp, "%s [%fs] SSL session attached to socket.\n", KEUKA_NEUTRAL_INDICATOR, elapsed);
+		BIO_printf(bp, "%s [%fs] Initiating handshake with %s.\n", KEUKA_OUTBOUND_INDICATOR, elapsed, hostname);
 	}
 
 	/**
@@ -406,7 +416,7 @@ int main (int argc, char **argv) {
 			now = clock();
 			elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-			BIO_printf(bp, "%s [%fs] Error: Could not build SSL session with %s. Handshake aborted.\n", KEUKA_RECV_ARROW, elapsed, url);
+			BIO_printf(bp, "%s [%fs] Error: Could not build SSL session with %s. Handshake aborted.\n", KEUKA_INBOUND_INDICATOR, elapsed, url);
 		} else {
 			BIO_printf(bp, "Error: Could not build SSL session with %s. Handshake aborted.\n", url);
 		}
@@ -418,7 +428,7 @@ int main (int argc, char **argv) {
 		now = clock();
 		elapsed = ((double) (now - start) / CLOCKS_PER_SEC);
 
-		BIO_printf(bp, "%s [%fs] Handshake complete.\n", KEUKA_RECV_ARROW, elapsed);
+		BIO_printf(bp, "%s [%fs] Handshake complete.\n", KEUKA_INBOUND_INDICATOR, elapsed);
 
 		if (pad_fmt) {
 			BIO_printf(bp, "\n");
