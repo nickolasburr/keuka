@@ -23,8 +23,8 @@ OBFILES = $(patsubst %.c,%.o,$(CSFILES))
 
 KERNEL := $(shell sh -c 'uname -s 2>/dev/null || echo unknown')
 
-CFLAGS  = -I$(INCLUDE) -I/usr/local/opt/openssl/include
-LDFLAGS = -pthread -lssl -lcrypto -lz -L/usr/local/opt/openssl/lib
+CFLAGS  = -I/usr/local/opt/openssl/include -I$(INCLUDE)
+LDFLAGS = -L/usr/local/opt/openssl/lib -pthread -lssl -lcrypto -lz
 
 ifeq "$(KERNEL)" "Darwin"
 LDFLAGS += -framework CoreFoundation -framework Security
