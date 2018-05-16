@@ -123,7 +123,7 @@ Aug 11 23:12:50 2018 GMT
 
 #### Get Common Name from certificate subject.
 
-`keuka -qs www.github.com | sed 's/--- Subject: //g' | grep --color=never -o CN=*.github.com`
+`keuka -qs www.github.com | sed 's/--- Subject: //g' | tr "," "\n" | tail -1`
 
 ```
 CN=github.com
