@@ -24,20 +24,20 @@ make install
 
 ## Options
 
-+ `--bits`, `-b`: Show public key length, in bits.
-+ `--chain`, `-c`: Show peer certificate chain.
-+ `--cipher`, `-C`: Show cipher negotiated during handshake.
-+ `--issuer`, `-i`: Show certificate issuer information.
-+ `--method`, `-m`: Show method negotiated during handshake.
-+ `--no-sni`, `-N`: Disable SNI support.
-+ `--quiet`, `-q`: Suppress progress-related output.
-+ `--raw`, `-r`: Output raw key and certificate contents.
-+ `--serial`, `-S`: Show certificate serial number.
-+ `--signature-algorithm`, `-A`: Show certificate signature algorithm.
-+ `--subject`, `-s`: Show certificate subject.
-+ `--validity`, `-V`: Show Not Before/Not After validity time range.
-+ `--help`, `-h`: Show help information and usage examples.
-+ `--version`, `-v`: Show version information.
++ `-b`, `--bits`: Show public key length, in bits.
++ `-c`, `--chain`: Show peer certificate chain.
++ `-C`, `--cipher`: Show cipher negotiated during handshake.
++ `-i`, `--issuer`: Show certificate issuer information.
++ `-m`, `--method`: Show method negotiated during handshake.
++ `-N`, `--no-sni`: Disable SNI support.
++ `-q`, `--quiet`: Suppress progress-related output.
++ `-r`, `--raw`: Output raw key and certificate contents.
++ `-S`, `--serial`: Show certificate serial number.
++ `-A`, `--signature-algorithm`: Show certificate signature algorithm.
++ `-s`, `--subject`: Show certificate subject.
++ `-V`, `--validity`: Show Not Before/Not After validity time range.
++ `-h`, `--help`: Show help information and usage examples.
++ `-v`, `--version`: Show version information.
 
 ## Examples
 
