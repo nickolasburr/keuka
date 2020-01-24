@@ -1,6 +1,24 @@
 # Keuka
 
-Keuka is a utility for analyzing the properties of SSL/TLS handshakes.
+`keuka` is a utility for analyzing the properties of SSL/TLS handshakes.
+
+## Table of Contents
+
++ [Installation](#installation)
+  - [Homebrew](#homebrew)
+  - [Manual](#manual)
++ [Options](#options)
++ [Examples](#examples)
+  - [Basic Usage](#basic-usage)
+    + [Get progress and timing information](#get-progress-and-timing-information)
+    + [Get cipher and certificate chain](#get-cipher-and-certificate-chain)
+    + [Get handshake method and signature algorithm](#get-handshake-method-and-signature-algorithm)
+  - [Advanced Usage](#advanced-usage)
+    + [Get cipher](#get-cipher)
+    + [Get certificate expiration date](#get-certificate-expiration-date)
+    + [Get common name from certificate subject](#get-common-name-from-certificate-subject)
+    + [Get public key and certificate, and split into separate files](#get-public-key-and-certificate-and-split-into-separate-files2)
++ [Notes](#notes)
 
 ## Installation
 
