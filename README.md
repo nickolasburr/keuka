@@ -11,7 +11,7 @@
 + [Examples](#examples)
   - [Basic Usage](#basic-usage)
     + [Get progress and timing information](#get-progress-and-timing-information)
-    + [Get cipher and certificate chain](#get-cipher-and-certificate-chain)
+    + [Get cipher and certificate chain](#get-cipher-and-certificate-chain1)
     + [Get handshake method and signature algorithm](#get-handshake-method-and-signature-algorithm)
   - [Advanced Usage](#advanced-usage)
     + [Get cipher](#get-cipher)
