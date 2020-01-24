@@ -19,6 +19,7 @@
     + [Get common name from certificate subject](#get-common-name-from-certificate-subject)
     + [Get public key and certificate, and split into separate files](#get-public-key-and-certificate-and-split-into-separate-files2)
 + [Notes](#notes)
++ [Troubleshooting](#troubleshooting)
 
 ## Installation
 
@@ -205,3 +206,16 @@ lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
 
 1. Specifying `--chain` without complementary options shows `[redacted]` per certificate.
 2. Assumes BSD split(1). For GNU split(1), use `--filter` instead.
+
+## Troubleshooting
+
+> dyld: Library not loaded: /usr/local/opt/openssl/lib/libssl.1.0.0.dylib
+
+This is a known issue on macOS. The most common solution is to switch to an older version
+of openssl. Using Homebrew, you can do the following:
+
+```
+brew switch openssl 1.0.2t
+```
+
+See [here](https://tinyurl.com/u2wtd4x) for more information.
