@@ -212,7 +212,9 @@ lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
 > dyld: Library not loaded: /usr/local/opt/openssl/lib/libssl.1.0.0.dylib
 
 This is a known issue on macOS. The most common solution is to switch to an older version
-of openssl. Using Homebrew, you can do the following:
+of OpenSSL.
+
+Using Homebrew, you can do the following:
 
 ```
 brew switch openssl 1.0.2t
