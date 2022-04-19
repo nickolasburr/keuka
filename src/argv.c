@@ -27,6 +27,10 @@ static method_t methods[] = {
 		"TLSv1_2",
 		OPT_TLSV1_2
 	},
+	{
+		"TLSv1_3",
+		OPT_TLSV1_3
+	},
 };
 
 static option_t options[] = {
@@ -128,20 +132,21 @@ int get_bitmask_from_key (char *key) {
  */
 void usage (void) {
 	int index;
-	char fvalue[36];
 
-	fprintf(stdout, "Usage: keuka [OPTIONS] [--] hostname\n\n");
-	fprintf(stdout, "Options:\n\n");
+	fprintf(
+		stdout,
+		"Usage: keuka [OPTIONS] [--] hostname\n\nOPTIONS:\n"
+	);
 
 	for (index = 0; index < NUM_OPTIONS; index += 1) {
-		option_t *option = &options[index];
-
-		/**
-		 * Format option->value string.
-		 */
-		copy(fvalue, option->value);
-		concat(fvalue, ",");
-
-		fprintf(stdout, "%4s%-22s %s: %-24s\n", "", fvalue, option->alias, option->desc);
+		fprintf(
+			stdout,
+			"%4s%s, %-22s%-4s%-24s\n",
+			"",
+			options[index].alias,
+			options[index].value,
+			"",
+			options[index].desc
+		);
 	}
 }
