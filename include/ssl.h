@@ -13,5 +13,6 @@
 #include <openssl/pem.h>
 #include <openssl/x509.h>
 #include <openssl/x509_vfy.h>
+#include <openssl/opensslv.h>
 
 #endif /* KEUKA_SSL_H */

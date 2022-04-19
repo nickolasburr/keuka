@@ -18,7 +18,7 @@
 #define MAX_SCHEME_LENGTH 6
 #define MAX_URL_LENGTH 268
 
-#define NUM_METHODS 5
+#define NUM_METHODS 6
 #define NUM_OPTIONS 14
 
 #define OPT_SSLV2 1
@@ -26,6 +26,7 @@
 #define OPT_TLSV1 4
 #define OPT_TLSV1_1 8
 #define OPT_TLSV1_2 16
+#define OPT_TLSV1_3 32
 
 typedef struct {
 	char *key;
