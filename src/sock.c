@@ -10,7 +10,7 @@
  * Create TCP socket.
  */
 int mksock (char *url, BIO *bp) {
-	int sockfd, port;
+	int sockfd, port, status;
 	char hostname[256] = "";
 	char port_num[6] = "443";
 	char protocol[6] = "";
@@ -70,12 +70,23 @@ int mksock (char *url, BIO *bp) {
 	memset(&(dest_addr.sin_zero), '\0', 8);
 	tmp_ptr = inet_ntoa(dest_addr.sin_addr);
 
+	status = connect(
+		sockfd,
+		(struct sockaddr*) &dest_addr,
+		sizeof(struct sockaddr)
+	);
+
 	/**
 	 * Return error if we're not able to connect.
 	 */
-	if (is_error(connect(sockfd, (struct sockaddr *) &dest_addr, sizeof(struct sockaddr)), -1)) {
-		BIO_printf(bp, "Error: Cannot connect to host %s [%s] on port %d.\n", hostname, tmp_ptr, port);
-
+	if (is_error(status, -1)) {
+		BIO_printf(
+			bp,
+			"Error: Cannot connect to host %s [%s] on port %d.\n",
+			hostname,
+			tmp_ptr,
+			port
+		);
 		return -1;
 	}
 
