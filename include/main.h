@@ -15,5 +15,6 @@
 #include "mem.h"
 #include "sock.h"
 #include "ssl.h"
+#include "clock.h"
 
 #endif /* KEUKA_MAIN_H */

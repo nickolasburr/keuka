@@ -16,14 +16,15 @@
  */
 
 int main (int argc, char **argv) {
-	clock_t start, end, now;
+	clock_t start;
 	size_t crt_index, sig_bytes;
-	double elapsed;
 	int last_index, penult_index, sig_type_err,
 	    opt_value, short_opt_index, long_opt_index;
 	int bits, chain, cipher, issuer, method,
 	    no_sni, pad_fmt, pad_tfmt, quiet;
-	int serial, server, raw, sig_algo, subject, validity;
+	int serial, server, raw, sig_algo,
+	    subject, validity;
+	int attach, status;
 	const char *hostname;
 	const char *protocol = "https";
 	char port[MAX_PORT_LENGTH],
@@ -41,6 +42,7 @@ int main (int argc, char **argv) {
 	         *tpubkey = NULL;
 	SSL_CTX *ctx;
 	SSL *ssl;
+	const SSL_CIPHER *ssl_cipher = NULL;
 
 	server = 0;
 	last_index = (argc - 1);
@@ -268,13 +270,11 @@ int main (int argc, char **argv) {
 	ssl_method = SSLv23_client_method();
 
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
 			"%s [%fs] Establishing SSL context.\n",
 			KEUKA_NEUTRAL_INDICATOR,
-			elapsed
+			get_elapsed_ticks(start)
 		);
 	}
 
@@ -286,13 +286,11 @@ int main (int argc, char **argv) {
 		 * Display error in progress format, unless given --quiet.
 		 */
 		if (!quiet) {
-			now = clock();
-			elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 			BIO_printf(
 				bp,
 				"%s [%fs] Error: Unable to establish SSL context.\n",
 				KEUKA_NEUTRAL_INDICATOR,
-				elapsed
+				get_elapsed_ticks(start)
 			);
 		} else {
 			BIO_printf(bp, "Error: Unable to establish SSL context.\n");
@@ -302,13 +300,11 @@ int main (int argc, char **argv) {
 	}
 
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
 			"%s [%fs] SSL context established.\n",
 			KEUKA_NEUTRAL_INDICATOR,
-			elapsed
+			get_elapsed_ticks(start)
 		);
 	}
 
@@ -318,13 +314,11 @@ int main (int argc, char **argv) {
 	server = mksock(url, bp);
 
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
 			"%s [%fs] Establishing connection to %s.\n",
 			KEUKA_OUTBOUND_INDICATOR,
-			elapsed,
+			get_elapsed_ticks(start),
 			hostname
 		);
 	}
@@ -337,13 +331,11 @@ int main (int argc, char **argv) {
 		 * Display error in progress format, unless given --quiet.
 		 */
 		if (!quiet) {
-			now = clock();
-			elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 			BIO_printf(
 				bp,
 				"%s [%fs] Error: Unable to resolve hostname %s.\n",
 				KEUKA_INBOUND_INDICATOR,
-				elapsed,
+				get_elapsed_ticks(start),
 				hostname
 			);
 		} else {
@@ -354,13 +346,11 @@ int main (int argc, char **argv) {
 	}
 
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
 			"%s [%fs] Connection established.\n",
 			KEUKA_INBOUND_INDICATOR,
-			elapsed
+			get_elapsed_ticks(start)
 		);
 	}
 
@@ -378,31 +368,29 @@ int main (int argc, char **argv) {
 	}
 
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
 			"%s [%fs] Attaching SSL session to socket.\n",
 			KEUKA_NEUTRAL_INDICATOR,
-			elapsed
+			get_elapsed_ticks(start)
 		);
 	}
+
+	attach = SSL_set_fd(ssl, server);
 
 	/**
 	 * Attach the SSL session to the TCP socket.
 	 */
-	if (is_error(SSL_set_fd(ssl, server), -1)) {
+	if (is_error(attach, -1)) {
 		/**
 		 * Display error in progress format, unless given --quiet.
 		 */
 		if (!quiet) {
-			now = clock();
-			elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 			BIO_printf(
 				bp,
 				"%s [%fs] Error: Unable to attach SSL session to socket.\n",
 				KEUKA_NEUTRAL_INDICATOR,
-				elapsed
+				get_elapsed_ticks(start)
 			);
 		} else {
 			BIO_printf(bp, "Error: Unable to attach SSL session to socket.\n");
@@ -412,38 +400,29 @@ int main (int argc, char **argv) {
 	}
 
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
-			"%s [%fs] SSL session attached to socket.\n",
-			KEUKA_NEUTRAL_INDICATOR,
-			elapsed
-		);
-		BIO_printf(
-			bp,
-			"%s [%fs] Initiating handshake with %s.\n",
+			"%s [%fs] SSL session attached, initiating handshake.\n",
 			KEUKA_OUTBOUND_INDICATOR,
-			elapsed,
-			hostname
+			get_elapsed_ticks(start)
 		);
 	}
+
+	status = SSL_connect(ssl);
 
 	/**
 	 * Bridge the connection.
 	 */
-	if (SSL_connect(ssl) != 1) {
+	if (status != 1) {
 		/**
 		 * Display error in progress format, unless given --quiet.
 		 */
 		if (!quiet) {
-			now = clock();
-			elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 			BIO_printf(
 				bp,
 				"%s [%fs] Error: Could not build SSL session with %s. Handshake aborted.\n",
-				KEUKA_INBOUND_INDICATOR,
-				elapsed,
+				KEUKA_NEUTRAL_INDICATOR,
+				get_elapsed_ticks(start),
 				url
 			);
 		} else {
@@ -457,14 +436,15 @@ int main (int argc, char **argv) {
 		goto on_error;
 	}
 
+	ssl_cipher = SSL_get_current_cipher(ssl);
+
 	if (!quiet) {
-		now = clock();
-		elapsed = ((double)(now - start) / CLOCKS_PER_SEC);
 		BIO_printf(
 			bp,
-			"%s [%fs] Handshake complete.\n",
+			"%s [%fs] %s negotiated, handshake complete.\n",
 			KEUKA_INBOUND_INDICATOR,
-			elapsed
+			get_elapsed_ticks(start),
+			SSL_CIPHER_get_version(ssl_cipher)
 		);
 
 		if (pad_fmt) {
@@ -479,7 +459,7 @@ int main (int argc, char **argv) {
 		BIO_printf(
 			bp,
 			"--- Cipher: %s\n",
-			SSL_CIPHER_get_name(SSL_get_current_cipher(ssl))
+			SSL_CIPHER_get_name(ssl_cipher)
 		);
 	}
 
