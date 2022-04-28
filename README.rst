@@ -174,37 +174,36 @@ Get progress and timing information
 
 ::
 
-    --- [0.000052s] Establishing SSL context.
-    --- [0.000721s] SSL context established.
-    --> [0.002033s] Establishing connection to www.openssl.org.
-    <-- [0.002056s] Connection established.
-    --- [0.002161s] Attaching SSL session to socket.
-    --- [0.002176s] SSL session attached to socket.
-    --> [0.002176s] Initiating handshake with www.openssl.org.
-    <-- [0.004188s] Handshake complete.
+    --- [0.000011s] Establishing SSL context.
+    --- [0.002499s] SSL context established.
+    --> [0.003232s] Establishing connection to www.openssl.org.
+    <-- [0.003261s] Connection established.
+    --- [0.003347s] Attaching SSL session to socket.
+    --> [0.003362s] SSL session attached, handshake initiated.
+    <-- [0.007192s] TLSv1.3 negotiated, handshake complete.
 
 Get cipher and certificate chain
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: sh
 
-    keuka --chain --cipher -- amazon.com
+    keuka --chain --cipher -- www.amazon.com
 
 ::
 
-    --- [0.000018s] Establishing SSL context.
-    --- [0.000494s] SSL context established.
-    --> [0.001827s] Establishing connection to amazon.com.
-    <-- [0.001866s] Connection established.
-    --- [0.001985s] Attaching SSL session to socket.
-    --- [0.002024s] SSL session attached to socket.
-    --> [0.002024s] Initiating handshake with amazon.com.
-    <-- [0.004389s] Handshake complete.
+    --- [0.000011s] Establishing SSL context.
+    --- [0.002810s] SSL context established.
+    --> [0.003543s] Establishing connection to www.amazon.com.
+    <-- [0.003567s] Connection established.
+    --- [0.003675s] Attaching SSL session to socket.
+    --> [0.003693s] SSL session attached, handshake initiated.
+    <-- [0.008298s] TLSv1.3 negotiated, handshake complete.
 
-    --- Cipher: ECDHE-RSA-AES128-GCM-SHA256
+    --- Cipher: TLS_AES_128_GCM_SHA256
     --- Certificate Chain:
         0: [redacted]
         1: [redacted]
+        2: [redacted]
 
 Get handshake method and signature algorithm
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,16 +214,15 @@ Get handshake method and signature algorithm
 
 ::
 
-    --- [0.000013s] Establishing SSL context.
-    --- [0.000330s] SSL context established.
-    --> [0.001227s] Establishing connection to google.com.
-    <-- [0.001262s] Connection established.
-    --- [0.001360s] Attaching SSL session to socket.
-    --- [0.001373s] SSL session attached to socket.
-    --> [0.001373s] Initiating handshake with google.com.
-    <-- [0.003505s] Handshake complete.
+    --- [0.000012s] Establishing SSL context.
+    --- [0.002750s] SSL context established.
+    --> [0.003358s] Establishing connection to www.google.com.
+    <-- [0.003396s] Connection established.
+    --- [0.003547s] Attaching SSL session to socket.
+    --> [0.003564s] SSL session attached, handshake initiated.
+    <-- [0.007649s] TLSv1.3 negotiated, handshake complete.
 
-    --- Method: TLSv1.2
+    --- Method: TLSv1.3
     --- Signature Algorithm: sha256WithRSAEncryption
 
 Advanced Usage
@@ -239,11 +237,11 @@ Get negotiated cipher
 
 .. code-block:: sh
 
-    keuka -qC amazon.com | cut -d' ' -f3
+    keuka -qC www.amazon.com | cut -d' ' -f3
 
 ::
 
-    ECDHE-RSA-AES128-GCM-SHA256
+    TLS_AES_128_GCM_SHA256
 
 Get certificate expiration date
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -254,7 +252,7 @@ Get certificate expiration date
 
 ::
 
-    Aug 11 23:12:50 2018 GMT
+    Jun 27 23:59:59 2022 GMT
 
 Get Common Name from certificate subject
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -280,45 +278,71 @@ Get public key and certificate, and split into separate files
     # -rw-r--r--  1 nickolasburr staff   453 Nov 11 14:24 keuka-ab
 
     -----BEGIN PUBLIC KEY-----
-    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvvqMJ98hjHN7HyNq8oxL
-    RomE+O2rbIBsdxhUxNAbj+F03WTZUG7xz9hdUHxr+1oTG2eBp0+n9LRIDEw5dkx2
-    bfKHZioxiwUEPNEQr8QErudFfsmR5+SKBmPMjk1njmnRkZErFGWB9FMGFIo8C9AM
-    1gOHr1caJUw4auTDZMhchL7gOPZVGTqe21qVCZzT/CjRUN/wzGSVON2depTYXn41
-    yKSMXN0lJZj6PQwSuhfjv0NsASBOY9bWlTeduFKB49VvFVY8TTajvr7ZZL6Ripxh
-    pmdtcsU+7uAnE68NoFvq9lgbHSg/Syzf1Vv1oPCx/lrrisEbJN6OgNzryDecz3R9
-    3QIDAQAB
+    MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmEsA2Ma0mA2LR/chNzHq
+    FUeF8Fw9b8ZSkCbyDfnFFk7imMI9E9GPoRibqWRvbCx9ypYiPu35HwnGeAqzY/fe
+    oJuLaQ0IXVmJQ8/c18KzFGR8a5KSgwA/lwIbmkdUhQONHHxvAlaAXrb773v8kX0p
+    s7dvG+Fi2aP5dH8x8H5WO753h1hKhW7xvJgYQ4jL6sFa432Iejfh9OeI24FLDtWj
+    7AuhcNp8xKfeIBpPYX8+MDYpUEbCUYgAklXi97YBFCBnPyM2wz3tp9EZ223Y2Wls
+    ais9ut2sPhVnln0pfzimHMzV4yYohEe+DPSyleyvYnAktGSImm/q7l6lPpkDKBQp
+    bQIDAQAB
     -----END PUBLIC KEY-----
 
     -----BEGIN CERTIFICATE-----
-    MIIFZDCCBEygAwIBAgISBNXbPUD6rMaOsLBxiFF8CFjBMA0GCSqGSIb3DQEBCwUA
-    MEoxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MSMwIQYDVQQD
-    ExpMZXQncyBFbmNyeXB0IEF1dGhvcml0eSBYMzAeFw0xNzA5MjcwOTAxMDBaFw0x
-    NzEyMjYwOTAxMDBaMBIxEDAOBgNVBAMTB2dudS5vcmcwggEiMA0GCSqGSIb3DQEB
-    AQUAA4IBDwAwggEKAoIBAQC++own3yGMc3sfI2ryjEtGiYT47atsgGx3GFTE0BuP
-    4XTdZNlQbvHP2F1QfGv7WhMbZ4GnT6f0tEgMTDl2THZt8odmKjGLBQQ80RCvxASu
-    50V+yZHn5IoGY8yOTWeOadGRkSsUZYH0UwYUijwL0AzWA4evVxolTDhq5MNkyFyE
-    vuA49lUZOp7bWpUJnNP8KNFQ3/DMZJU43Z16lNhefjXIpIxc3SUlmPo9DBK6F+O/
-    Q2wBIE5j1taVN524UoHj1W8VVjxNNqO+vtlkvpGKnGGmZ21yxT7u4CcTrw2gW+r2
-    WBsdKD9LLN/VW/Wg8LH+WuuKwRsk3o6A3OvIN5zPdH3dAgMBAAGjggJ6MIICdjAO
-    BgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMAwG
-    A1UdEwEB/wQCMAAwHQYDVR0OBBYEFGFxRfLUavp6y+CssYKH3vnIAcIiMB8GA1Ud
-    IwQYMBaAFKhKamMEfd265tE5t6ZFZe/zqOyhMG8GCCsGAQUFBwEBBGMwYTAuBggr
-    BgEFBQcwAYYiaHR0cDovL29jc3AuaW50LXgzLmxldHNlbmNyeXB0Lm9yZzAvBggr
-    BgEFBQcwAoYjaHR0cDovL2NlcnQuaW50LXgzLmxldHNlbmNyeXB0Lm9yZy8wgYQG
-    A1UdEQR9MHuCCWVtYWNzLm9yZ4IHZ251Lm9yZ4IMaHVyZC5nbnUub3Jnghh3d3cu
-    ZnJlZXNvZnR3YXJlLmZzZi5vcmeCC3d3dy5nbnUub3JnghB3d3cuaHVyZC5nbnUu
-    b3JnghB3d3cuaXB2Ni5nbnUub3Jnggx3d3c2LmdudS5vcmcwgf4GA1UdIASB9jCB
-    8zAIBgZngQwBAgEwgeYGCysGAQQBgt8TAQEBMIHWMCYGCCsGAQUFBwIBFhpodHRw
-    Oi8vY3BzLmxldHNlbmNyeXB0Lm9yZzCBqwYIKwYBBQUHAgIwgZ4MgZtUaGlzIENl
-    cnRpZmljYXRlIG1heSBvbmx5IGJlIHJlbGllZCB1cG9uIGJ5IFJlbHlpbmcgUGFy
-    dGllcyBhbmQgb25seSBpbiBhY2NvcmRhbmNlIHdpdGggdGhlIENlcnRpZmljYXRl
-    IFBvbGljeSBmb3VuZCBhdCBodHRwczovL2xldHNlbmNyeXB0Lm9yZy9yZXBvc2l0
-    b3J5LzANBgkqhkiG9w0BAQsFAAOCAQEANJfoCZuo5apkn6Kncabwq7JoCsMFVrzk
-    72CpAqs8tVWZfYkbCnezEuESyWZfYA4vjiD+BOD+2jlcfeswamy5oDU8tCykp/+Q
-    1E4Wa7D14jb6zbgGj7h3z0EXYTx4l58t0PUjbZJbp7d2kf6/H4I7cCnmSf6kF2sN
-    bBlPN7x81vtmY/mA7bboMLU5ZtuhSW2d82o9/Uo1IY2o0X32ZBCdTKRvABN3urDQ
-    9e1txwfZyuJefgX2sZrv1QlmjI4jQwVPgMxwBK7asmxP8ZWkqGfnZokCX+iYOI0U
-    lx1MOd8y3HFI/j1nE7xZZMPLKtGGyBYZ+W1sXbpTx/7WQ+8uQcaYfA==
+    MIIKRDCCCSygAwIBAgISAwANCRhgGOkL54Wacj8CsppBMA0GCSqGSIb3DQEBCwUA
+    MDIxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQswCQYDVQQD
+    EwJSMzAeFw0yMjA0MTUxMjI0NDJaFw0yMjA3MTQxMjI0NDFaMB8xHTAbBgNVBAMT
+    FHdpbGRlYmVlc3QxcC5nbnUub3JnMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+    CgKCAQEAmEsA2Ma0mA2LR/chNzHqFUeF8Fw9b8ZSkCbyDfnFFk7imMI9E9GPoRib
+    qWRvbCx9ypYiPu35HwnGeAqzY/feoJuLaQ0IXVmJQ8/c18KzFGR8a5KSgwA/lwIb
+    mkdUhQONHHxvAlaAXrb773v8kX0ps7dvG+Fi2aP5dH8x8H5WO753h1hKhW7xvJgY
+    Q4jL6sFa432Iejfh9OeI24FLDtWj7AuhcNp8xKfeIBpPYX8+MDYpUEbCUYgAklXi
+    97YBFCBnPyM2wz3tp9EZ223Y2Wlsais9ut2sPhVnln0pfzimHMzV4yYohEe+DPSy
+    leyvYnAktGSImm/q7l6lPpkDKBQpbQIDAQABo4IHZTCCB2EwDgYDVR0PAQH/BAQD
+    AgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMBAf8EAjAA
+    MB0GA1UdDgQWBBT5l5VnNWb+f7ooZyhvx/RUakXPcDAfBgNVHSMEGDAWgBQULrMX
+    t1hWy65QCUDmH6+dixTCxjBVBggrBgEFBQcBAQRJMEcwIQYIKwYBBQUHMAGGFWh0
+    dHA6Ly9yMy5vLmxlbmNyLm9yZzAiBggrBgEFBQcwAoYWaHR0cDovL3IzLmkubGVu
+    Y3Iub3JnLzCCBTIGA1UdEQSCBSkwggUlghVhcmNoaXZlLmduZXdzZW5zZS5vcmeC
+    EmJldGEuZ25ld3NlbnNlLm9yZ4IWYmxvb2Rub2suZ25ld3NlbnNlLm9yZ4ISYm9m
+    aC5nbmV3c2Vuc2Uub3JnghJidWdzLmduZXdzZW5zZS5vcmeCEWJ6ci5nbmV3c2Vu
+    c2Uub3JnghVjZGltYWdlLmduZXdzZW5zZS5vcmeCDWNsYXNzcGF0aC5vcmeCFGNv
+    bmZpZy5nbmV3c2Vuc2Uub3JnghFkaWdpdGFsc3BlZWNoLm9yZ4IYZG9uYXRlLmRp
+    Z2l0YWxzcGVlY2gub3Jnggpkb3RnbnUub3JnghRlY2NsZXMuZ25ld3NlbnNlLm9y
+    Z4IJZW1hY3Mub3Jngg1nbGliYy5nbnUub3Jngg1nbmV3c2Vuc2Uub3JnggdnbnUu
+    b3JnggtnbnVraWRzLm9yZ4IKZ3BsZmFxLm9yZ4IMaHVyZC5nbnUub3Jngg9pcHY2
+    Lm5vbmdudS5vcmeCEWtpbmRsZXN3aW5kbGUub3Jnggpub25nbnUub3JnghtwYXRj
+    aC10cmFja2VyLmduZXdzZW5zZS5vcmeCD3BsYXlmcmVlZG9tLm9yZ4ILcGxheW9n
+    Zy5jb22CC3BsYXlvZ2cubmV0ggtwbGF5b2dnLm9yZ4ITcnN5bmMuZ25ld3NlbnNl
+    Lm9yZ4IVc2VhZ29vbi5nbmV3c2Vuc2Uub3JnghZzZWN1cml0eS5nbmV3c2Vuc2Uu
+    b3JnghFzbWFsbHRhbGsuZ251Lm9yZ4IVdG9ycmVudC5nbmV3c2Vuc2Uub3JnghZ1
+    cGdyYWRlZnJvbXdpbmRvd3MuY29tghZ1cGdyYWRlZnJvbXdpbmRvd3Mub3Jnghd1
+    cGdyYWRlZnJvbXdpbmRvd3M4LmNvbYIXdXBncmFkZWZyb213aW5kb3dzOC5vcmeC
+    GHVzLmFyY2hpdmUuZ25ld3NlbnNlLm9yZ4INdmNkaW1hZ2VyLm9yZ4ISd2lraS5n
+    bmV3c2Vuc2Uub3Jnghd3aWxkZWJlZXN0LmlwdjYuZ251Lm9yZ4IUd2lsZGViZWVz
+    dDFwLmdudS5vcmeCEXd3dy5jbGFzc3BhdGgub3JnghV3d3cuZGlnaXRhbHNwZWVj
+    aC5vcmeCDnd3dy5kb3RnbnUub3Jngg13d3cuZW1hY3Mub3JnghF3d3cuZ25ld3Nl
+    bnNlLm9yZ4ILd3d3LmdudS5vcmeCD3d3dy5nbnVraWRzLm9yZ4IOd3d3LmdwbGZh
+    cS5vcmeCEHd3dy5odXJkLmdudS5vcmeCEHd3dy5pcHY2LmdudS5vcmeCE3d3dy5p
+    cHY2Lm5vbmdudS5vcmeCFXd3dy5raW5kbGVzd2luZGxlLm9yZ4IOd3d3Lm5vbmdu
+    dS5vcmeCE3d3dy5wbGF5ZnJlZWRvbS5vcmeCD3d3dy5wbGF5b2dnLmNvbYIPd3d3
+    LnBsYXlvZ2cubmV0gg93d3cucGxheW9nZy5vcmeCGnd3dy51cGdyYWRlZnJvbXdp
+    bmRvd3MuY29tghp3d3cudXBncmFkZWZyb213aW5kb3dzLm9yZ4Ibd3d3LnVwZ3Jh
+    ZGVmcm9td2luZG93czguY29tght3d3cudXBncmFkZWZyb213aW5kb3dzOC5vcmeC
+    EXd3dy52Y2RpbWFnZXIub3Jnggx3d3c2LmdudS5vcmeCD3d3dzYubm9uZ251Lm9y
+    Z4IUeDg2LTMyLmduZXdzZW5zZS5vcmeCFHg4Ni02NC5nbmV3c2Vuc2Uub3JnMEwG
+    A1UdIARFMEMwCAYGZ4EMAQIBMDcGCysGAQQBgt8TAQEBMCgwJgYIKwYBBQUHAgEW
+    Gmh0dHA6Ly9jcHMubGV0c2VuY3J5cHQub3JnMIIBBQYKKwYBBAHWeQIEAgSB9gSB
+    8wDxAHcA36Veq2iCTx9sre64X04+WurNohKkal6OOxLAIERcKnMAAAGALWW3BAAA
+    BAMASDBGAiEAz2MTU/no2ICHVo1+dI2gqbWsf7YvweFQqNfxQLqqJzwCIQD8ordw
+    p1GrIB6JNsxU0tLkyEJEvzyAjt+UivFFFm2VzwB2ACl5vvCeOTkh8FZzn2Old+W+
+    V32cYAr4+U1dJlwlXceEAAABgC1ltwMAAAQDAEcwRQIgUTbqVO9NvH9DrCWmcwwy
+    rs8EtcoRNLghjMkmowTDmdQCIQD2D4ceFGZDwWU4/VyVb9jfh6pubbYWESY015/B
+    D+qlJTANBgkqhkiG9w0BAQsFAAOCAQEALzMXd0xfzSoHc/dULMrKhQFV9OAuhvlB
+    mKCQyAItipOgc3AS1SG21tcxZDlvLGlb8wAG8BnuogvHOaDKW1ZJ4HJeVKhCT6PF
+    EWLCjHLWkZ3IZmFbvNOo1XLr7iCQKGM/EGkPy11Ijb/bM3LNN+VDf+dlznQpf6Av
+    0KCe6HsbayOFIxo3lIkhziM8mIEdrOYKSbvZyRJOffNvifXhvMF2VKDE1g2plqCX
+    5CroUwEpyfiWRNcr60H25AqX9PVnO2vkhrWZTQVD+zmC/KskVZCLqWuZBQHliasn
+    jKScAxzYEJrX+fMP07z55Lpb4pROZrvmw11SqVsdgDo2S5baRN7YRg==
     -----END CERTIFICATE-----
 
 Notes
