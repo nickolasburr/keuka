@@ -22,7 +22,7 @@
 #include <linux/limits.h>
 #endif
 
-#define KEUKA_VERSION "1.0.4"
+#define KEUKA_VERSION "1.0.5"
 
 #define _GNU_SOURCE
 #define NULL_DEVICE "/dev/null"
