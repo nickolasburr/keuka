@@ -402,7 +402,7 @@ int main (int argc, char **argv) {
 	if (!quiet) {
 		BIO_printf(
 			bp,
-			"%s [%fs] SSL session attached, initiating handshake.\n",
+			"%s [%fs] SSL session attached, handshake initiated.\n",
 			KEUKA_OUTBOUND_INDICATOR,
 			get_elapsed_ticks(start)
 		);
