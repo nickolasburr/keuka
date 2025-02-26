@@ -107,7 +107,19 @@ int main (int argc, char **argv) {
 		{ "version", no_argument, 0, 'v' },
 	};
 
-	while ((opt_value = getopt_long(argc, argv, "bcCimNqrSAsVhv", long_options, &long_opt_index)) != -1) {
+	do {
+		opt_value = getopt_long(
+			argc,
+			argv,
+			"bcCimNqrSAsVhv",
+			long_options,
+			&long_opt_index
+		);
+
+		if (opt_value == -1) {
+			break;
+		}
+
 		switch (opt_value) {
 			/**
 			 * If --bits option was given, output
@@ -214,7 +226,7 @@ int main (int argc, char **argv) {
 			default:
 				break;
 		}
-	}
+	} while (1);
 
 	/**
 	 * If no arguments were given,
@@ -281,7 +293,9 @@ int main (int argc, char **argv) {
 	/**
 	 * Establish new SSL context.
 	 */
-	if (is_null(ctx = SSL_CTX_new(ssl_method))) {
+	ctx = SSL_CTX_new(ssl_method);
+
+	if (is_null(ctx)) {
 		/**
 		 * Display error in progress format, unless given --quiet.
 		 */
@@ -482,8 +496,14 @@ int main (int argc, char **argv) {
 		/**
 		 * Get peer certificate chain.
 		 */
-		if (is_null(fullchain = SSL_get_peer_cert_chain(ssl))) {
-			BIO_printf(bp, "Error: Could not get certificate chain from %s.\n", url);
+		fullchain = SSL_get_peer_cert_chain(ssl);
+
+		if (is_null(fullchain)) {
+			BIO_printf(
+				bp,
+				"Error: Could not get certificate chain from %s.\n",
+				url
+			);
 			goto on_error;
 		}
 
@@ -492,13 +512,21 @@ int main (int argc, char **argv) {
 		/**
 		 * Output certificate chain.
 		 */
-		for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
+		for (
+			crt_index = 0;
+			crt_index < sk_X509_num(fullchain);
+			crt_index += 1
+		) {
 			pad_tfmt = 0;
 			tcrt = sk_X509_value(fullchain, crt_index);
 			tcrtname = X509_get_subject_name(tcrt);
 			tpubkey = X509_get_pubkey(tcrt);
 
-			BIO_printf(bp, "%5d: ", (int) crt_index);
+			BIO_printf(
+				bp,
+				"%5d: ",
+				(int) crt_index
+			);
 
 			/**
 			 * If --subject option was given, output certificate subject information.
@@ -624,7 +652,11 @@ int main (int argc, char **argv) {
 			PEM_write_bio_PUBKEY(bp, tpubkey);
 			BIO_printf(bp, "\n");
 
-			for (crt_index = 0; crt_index < sk_X509_num(fullchain); crt_index += 1) {
+			for (
+				crt_index = 0;
+				crt_index < sk_X509_num(fullchain);
+				crt_index += 1
+			) {
 				PEM_write_bio_X509(
 					bp,
 					sk_X509_value(fullchain, crt_index)
@@ -636,8 +668,14 @@ int main (int argc, char **argv) {
 		/**
 		 * Get peer certificate.
 		 */
-		if (is_null(crt = SSL_get_peer_certificate(ssl))) {
-			BIO_printf(bp, "Error: Could not get certificate from %s.\n", url);
+		crt = SSL_get_peer_certificate(ssl);
+
+		if (is_null(crt)) {
+			BIO_printf(
+				bp,
+				"Error: Could not get certificate from %s.\n",
+				url
+			);
 			goto on_error;
 		}
 
@@ -649,7 +687,12 @@ int main (int argc, char **argv) {
 		 */
 		if (subject) {
 			BIO_printf(bp, "--- Subject: ");
-			X509_NAME_print_ex(bp, crtname, 0, XN_FLAG_SEP_COMMA_PLUS);
+			X509_NAME_print_ex(
+				bp,
+				crtname,
+				0,
+				XN_FLAG_SEP_COMMA_PLUS
+			);
 			BIO_printf(bp, "\n");
 		}
 
@@ -658,12 +701,21 @@ int main (int argc, char **argv) {
 		 */
 		if (issuer) {
 			BIO_printf(bp, "--- Issuer: ");
-			X509_NAME_print_ex(bp, X509_get_issuer_name(crt), 0, XN_FLAG_SEP_CPLUS_SPC);
+			X509_NAME_print_ex(
+				bp,
+				X509_get_issuer_name(crt),
+				0,
+				XN_FLAG_SEP_CPLUS_SPC
+			);
 			BIO_printf(bp, "\n");
 		}
 
 		if (bits) {
-			BIO_printf(bp, "%s%d\n", "--- Bits: ", EVP_PKEY_bits(pubkey));
+			BIO_printf(
+				bp,
+				"%s%d\n", "--- Bits: ",
+				EVP_PKEY_bits(pubkey)
+			);
 		}
 
 		/**
