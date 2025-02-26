@@ -6,7 +6,8 @@ keuka
 Description
 -----------
 
-``keuka`` is a utility for analyzing the properties of SSL/TLS handshakes.
+``keuka`` (kew-kuh) is a **k**\ ey **e**\ xchange **u**\ tility for **k**\ ey **a**\ nalysis.
+It's helpful for analyzing SSL/TLS handshakes.
 
 Installation
 ------------
