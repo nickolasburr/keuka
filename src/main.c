@@ -25,23 +25,24 @@ int main (int argc, char **argv) {
 	int serial, server, raw, sig_algo,
 	    subject, validity;
 	int attach, status;
-	const char *hostname;
+	const char *hostname = NULL;
 	const char *protocol = "https";
 	char port[MAX_PORT_LENGTH],
 	     url[MAX_URL_LENGTH];
-	const SSL_METHOD *ssl_method;
-	ASN1_INTEGER *asn1_serial;
-	const ASN1_BIT_STRING *asn1_sig;
-	const X509_ALGOR *sig_type;
-	STACK_OF(X509) *fullchain;
-	BIO *bp;
+	const SSL_METHOD *ssl_method = NULL;
+	ASN1_INTEGER *asn1_serial = NULL;
+	const ASN1_BIT_STRING *asn1_sig = NULL;
+	const X509_ALGOR *sig_type = NULL;
+	STACK_OF(X509) *fullchain = NULL;
+	BIO *bp = NULL;
 	X509 *crt = NULL,
 	     *tcrt = NULL;
-	X509_NAME *crtname, *tcrtname;
+	X509_NAME *crtname = NULL,
+	          *tcrtname = NULL;
 	EVP_PKEY *pubkey = NULL,
 	         *tpubkey = NULL;
-	SSL_CTX *ctx;
-	SSL *ssl;
+	SSL_CTX *ctx = NULL;
+	SSL *ssl = NULL;
 	const SSL_CIPHER *ssl_cipher = NULL;
 
 	server = 0;
