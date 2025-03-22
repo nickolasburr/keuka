@@ -6,7 +6,7 @@ keuka
 Description
 -----------
 
-``keuka`` (kew-kuh) is a **k**\ ey **e**\ xchange **u**\ tility for **k**\ ey **a**\ nalysis.
+``keuka`` (kyew-kuh) is a **k**\ ey **e**\ xchange **u**\ tility for **k**\ ey **a**\ nalysis.
 It's helpful for analyzing SSL/TLS handshakes.
 
 Installation
