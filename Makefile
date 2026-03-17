@@ -2,29 +2,31 @@
 ### Makefile
 ###
 
-CC      = gcc
-TARGET  = keuka
-INSTALL = /usr/bin/install -c
+CC        ?= gcc
+TARGET    ?= keuka
+INSTALL   ?= /usr/bin/install -c
+prefix    ?= /usr/local
+bindir    ?= $(prefix)/bin
+binprefix ?=
 
-prefix = /usr/local
-bindir = $(prefix)/bin
-binprefix =
+ARFLAGS   ?= rcs
+RM        ?= rm
+RMFLAGS   ?= -rf
 
-ARFLAGS = rcs
-RM      = rm
-RMFLAGS = -rf
+OPENSSL_INC ?= $(shell pkg-config --cflags openssl 2>/dev/null)
+OPENSSL_LIB ?= $(shell pkg-config --libs openssl 2>/dev/null)
 
-INCLUDE = include
-SOURCES = src
-TOOLS   = tools
+INCLUDE   = include
+SOURCES   = src
+TOOLS     = tools
 
-CSFILES = $(wildcard $(SOURCES)/*.c)
-OBFILES = $(patsubst %.c,%.o,$(CSFILES))
+CSFILES   = $(wildcard $(SOURCES)/*.c)
+OBFILES   = $(patsubst %.c,%.o,$(CSFILES))
 
 KERNEL := $(shell sh -c 'uname -s 2>/dev/null || echo unknown')
 
-CFLAGS  = -I/usr/local/opt/openssl/include -I$(INCLUDE)
-LDFLAGS = -L/usr/local/opt/openssl/lib -pthread -lssl -lcrypto -lz
+CFLAGS  += -I$(INCLUDE) $(OPENSSL_INC)
+LDFLAGS += -pthread -lz $(OPENSSL_LIB) -lssl -lcrypto
 
 ifeq "$(KERNEL)" "Darwin"
 LDFLAGS += -framework CoreFoundation -framework Security
