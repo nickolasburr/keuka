@@ -18,8 +18,8 @@
 int main (int argc, char **argv) {
 	clock_t start;
 	size_t crt_index, sig_bytes;
-	int last_index, penult_index, sig_type_err,
-	    opt_value, short_opt_index, long_opt_index;
+	int pindex, uindex, sig_type_err,
+	    opt_value, long_opt_index;
 	int bits, chain, cipher, issuer, method,
 	    no_sni, pad_fmt, pad_tfmt, quiet;
 	int serial, server, raw, sig_algo,
@@ -46,13 +46,13 @@ int main (int argc, char **argv) {
 	const SSL_CIPHER *ssl_cipher = NULL;
 
 	server = 0;
-	last_index = (argc - 1);
-	penult_index = (last_index - 1);
+	uindex = (argc - 1);
+	pindex = (uindex - 1);
 
 	/**
 	 * Add padding after progress output, if applicable.
 	 */
-	pad_fmt = (argc > 2 && argv[penult_index] != OPT_LSEP);
+	pad_fmt = (argc > 2 && argv[pindex] != OPT_LSEP);
 
 	/**
 	 * OPTIONS
@@ -73,37 +73,21 @@ int main (int argc, char **argv) {
 	 * -v, --version                Show version information.
 	 */
 
-	/**
-	 * Initialize defaults.
-	 */
-	bits = 0;
-	chain = 0;
-	cipher = 0;
-	issuer = 0;
-	method = 0;
-	no_sni = 0;
-	short_opt_index = 0;
 	long_opt_index = 0;
-	quiet = 0;
-	raw = 0;
-	serial = 0;
-	sig_algo = 0;
-	subject = 0;
-	validity = 0;
 
 	static struct option long_options[] = {
-		{ "bits", no_argument, 0, 'b' },
-		{ "chain", no_argument, 0, 'c' },
-		{ "cipher", no_argument, 0, 'C' },
-		{ "issuer", no_argument, 0, 'i' },
-		{ "method", no_argument, 0, 'm' },
-		{ "no-sni", no_argument, 0, 'N' },
-		{ "quiet", no_argument, 0, 'q' },
-		{ "raw", no_argument, 0, 'r' },
-		{ "serial", no_argument, 0, 'S' },
-		{ "signature-algorithm", no_argument, 0, 'A' },
-		{ "subject", no_argument, 0, 's' },
-		{ "validity", no_argument, 0, 'V' },
+		{ "bits", no_argument, &bits, 'b' },
+		{ "chain", no_argument, &chain, 'c' },
+		{ "cipher", no_argument, &cipher, 'C' },
+		{ "issuer", no_argument, &issuer, 'i' },
+		{ "method", no_argument, &method, 'm' },
+		{ "no-sni", no_argument, &no_sni, 'N' },
+		{ "quiet", no_argument, NULL, 'q' },
+		{ "raw", no_argument, &raw, 'r' },
+		{ "serial", no_argument, &serial, 'S' },
+		{ "signature-algorithm", no_argument, &sig_algo, 'A' },
+		{ "subject", no_argument, &subject, 's' },
+		{ "validity", no_argument, &validity, 'V' },
 		{ "help", no_argument, 0, 'h' },
 		{ "version", no_argument, 0, 'v' },
 	};
@@ -122,90 +106,9 @@ int main (int argc, char **argv) {
 		}
 
 		switch (opt_value) {
-			/**
-			 * If --bits option was given, output
-			 * public key length, in bits.
-			 */
-			case 'b':
-				bits = 1;
-				continue;
-			/**
-			 * If --chain option was given, output
-			 * the entire peer certificate chain.
-			 */
-			case 'c':
-				chain = 1;
-				continue;
-			/**
-			 * If --cipher option was given, output
-			 * the cipher used for the exchange.
-			 */
-			case 'C':
-				cipher = 1;
-				continue;
-			/**
-			 * If --issuer option was given, output
-			 * issuer information for certificate.
-			 */
-			case 'i':
-				issuer = 1;
-				continue;
-			/**
-			 * If --method option was given, output
-			 * version of method used for handshake.
-			 */
-			case 'm':
-				method = 1;
-				continue;
-			/**
-			 * If --no-sni option was given, disable
-			 * establishing connection, handshake.
-			 */
-			case 'N':
-				no_sni = 1;
-				continue;
-			/**
-			 * If --quiet option was given, suppress
-			 * timing and progress-related output.
-			 */
 			case 'q':
 				quiet = 1;
 				pad_fmt = 0;
-				continue;
-			/**
-			 * If --raw option was given, output
-			 * raw certificate contents to stdout.
-			 */
-			case 'r':
-				raw = 1;
-				continue;
-			/**
-			 * If --serial option was given, output
-			 * serial number for the certificate(s).
-			 */
-			case 'S':
-				serial = 1;
-				continue;
-			/**
-			 * If --signature-algorithm option was given,
-			 * output signature algorithm used for certificate(s).
-			 */
-			case 'A':
-				sig_algo = 1;
-				continue;
-			/**
-			 * If --subject option was given, output
-			 * the certificate(s) subject information.
-			 */
-			case 's':
-				subject = 1;
-				continue;
-			/**
-			 * If --validity option was given, output
-			 * Not Before/Not After validity time range.
-			 */
-			case 'V':
-				validity = 1;
 				continue;
 			/**
 			 * If --help option was given, output
@@ -233,7 +136,7 @@ int main (int argc, char **argv) {
 	 * If no arguments were given,
 	 * complain to stderr and exit.
 	 */
-	if (last_index < 1) {
+	if (uindex < 1) {
 		fprintf(
 			stderr,
 			"Error: Hostname not specified.\n"
@@ -244,7 +147,7 @@ int main (int argc, char **argv) {
 	/**
 	 * Limit length of hostname given as an argument.
 	 */
-	if (length(argv[last_index]) > MAX_HOSTNAME_LENGTH) {
+	if (length(argv[uindex]) > MAX_HOSTNAME_LENGTH) {
 		fprintf(
 			stderr,
 			"Error: Hostname exceeds maximum length of %d characters.\n",
@@ -256,7 +159,7 @@ int main (int argc, char **argv) {
 	/**
 	 * The last element in argv should be the peer hostname.
 	 */
-	hostname = argv[last_index];
+	hostname = argv[uindex];
 
 	/**
 	 * Assemble URL for request.
